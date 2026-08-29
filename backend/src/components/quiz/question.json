@@ -1,0 +1,22 @@
+{
+  "collectionName": "components_quiz_questions",
+  "info": {
+    "displayName": "Question",
+    "description": "A multiple-choice quiz question with a server-only answer key"
+  },
+  "options": {},
+  "attributes": {
+    "questionText": {
+      "type": "string",
+      "required": true
+    },
+    "options": {
+      "type": "json",
+      "required": true
+    },
+    "correctIndex": {
+      "type": "integer",
+      "required": true
+    }
+  }
+}

@@ -23,6 +23,19 @@ export default async (policyContext: any, _config: unknown, { strapi }: any) => 
     courseDocumentId = (lesson?.course as any)?.documentId;
   }
 
+  // Quiz routes are authorized against the quiz's stored course. A supplied
+  // course id must never grant access to a quiz from another course.
+  const quizDocumentId = policyContext.request.path?.startsWith('/api/quizzes/')
+    ? policyContext.params?.documentId
+    : undefined;
+  if (quizDocumentId) {
+    const quiz = await strapi.documents('api::quiz.quiz').findOne({
+      documentId: quizDocumentId,
+      populate: { course: { fields: ['documentId'] } },
+    });
+    courseDocumentId = (quiz?.course as any)?.documentId;
+  }
+
   if (!courseDocumentId) return false;
 
   return hasEnrollment(strapi, user.id, courseDocumentId);

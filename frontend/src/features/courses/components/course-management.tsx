@@ -8,6 +8,7 @@ import {
 } from '@/features/courses/actions';
 import { getCourseLessons, getManageableCourses } from '@/features/courses/queries';
 import { getCourseStudentProgress } from '@/features/progress/queries';
+import { QuizManagement } from '@/features/quiz/components/quiz-management';
 
 type CourseManagementProps = {
   eyebrow: string;
@@ -107,6 +108,11 @@ export async function CourseManagement({
                   </form>
                 </details>
               </div>
+
+              <QuizManagement
+                courseDocumentId={course.documentId}
+                returnPath={returnPath}
+              />
 
               <details className="student-progress-panel">
                 <summary>Student progress ({studentProgress.length})</summary>

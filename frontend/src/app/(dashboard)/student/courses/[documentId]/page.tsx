@@ -7,6 +7,7 @@ import {
   unmarkLessonCompleteAction,
 } from '@/features/progress/actions';
 import { getCourseProgress } from '@/features/progress/queries';
+import { getCourseQuizSummaries } from '@/features/quiz/queries';
 import { ROLE } from '@/lib/constants';
 
 type LessonViewerProps = {
@@ -27,10 +28,11 @@ function embeddableUrl(value?: string | null): string | null {
 async function renderLessonViewer({ params, searchParams }: LessonViewerProps) {
   const { documentId } = await params;
   const query = await searchParams;
-  const [course, lessons, progress] = await Promise.all([
+  const [course, lessons, progress, quizzes] = await Promise.all([
     getCourse(documentId),
     getCourseLessons(documentId),
     getCourseProgress(documentId),
+    getCourseQuizSummaries(documentId),
   ]);
   const completedLessons = new Set(progress.completedLessonDocumentIds);
   const requested = Number.parseInt(query.lesson ?? '0', 10);
@@ -65,6 +67,20 @@ async function renderLessonViewer({ params, searchParams }: LessonViewerProps) {
               </span>{lesson.title}
             </Link>
           ))}
+          {quizzes.length > 0 && (
+            <div className="course-quiz-links">
+              <h3>Quizzes</h3>
+              {quizzes.map((quiz) => (
+                <Link
+                  href={`/student/courses/${documentId}/quiz/${quiz.documentId}`}
+                  key={quiz.documentId}
+                >
+                  <span className="lesson-number">?</span>
+                  <span>{quiz.title}<small>{quiz.questionCount} questions</small></span>
+                </Link>
+              ))}
+            </div>
+          )}
         </aside>
         <article className="lesson-pane">
           {!selected ? (

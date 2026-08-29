@@ -47,8 +47,14 @@ const SHARED_AUTHENTICATED_ACTIONS = [
   'api::progress.progress.me',
   'api::progress.progress.courseStudents',
   'api::quiz.quiz.create',
+  'api::quiz.quiz.findOne',
   'api::quiz.quiz.update',
   'api::quiz.quiz.delete',
+  'api::quiz.quiz.courseQuizzes',
+  'api::quiz.quiz.take',
+  'api::quiz.quiz.submit',
+  'api::quiz.quiz.attempts',
+  'api::quiz-attempt.quiz-attempt.me',
   'api::admin-role.admin-role.updateRole',
 ];
 

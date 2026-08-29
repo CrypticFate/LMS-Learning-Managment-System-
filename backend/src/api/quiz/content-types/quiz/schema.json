@@ -17,6 +17,18 @@
       "target": "api::course.course",
       "inversedBy": "quizzes",
       "required": true
+    },
+    "questions": {
+      "type": "component",
+      "repeatable": true,
+      "component": "quiz.question",
+      "required": true
+    },
+    "attempts": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::quiz-attempt.quiz-attempt",
+      "mappedBy": "quiz"
     }
   }
 }

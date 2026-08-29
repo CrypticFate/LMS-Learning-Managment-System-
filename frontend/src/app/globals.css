@@ -612,6 +612,218 @@ progress::-moz-progress-bar {
   border-top: 1px solid var(--border);
 }
 
+.quiz-management,
+.student-progress-panel {
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border);
+}
+
+.quiz-management-content {
+  margin-top: 1rem;
+}
+
+.quiz-admin-card,
+.quiz-create-panel {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  background: var(--background);
+}
+
+.quiz-admin-card .muted {
+  margin: 0.3rem 0 0;
+}
+
+.quiz-editor {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.quiz-title-field,
+.quiz-question-editor label {
+  display: grid;
+  gap: 0.4rem;
+  color: var(--muted);
+  font-size: 0.84rem;
+  font-weight: 750;
+}
+
+.quiz-editor input[type="text"],
+.quiz-editor input:not([type]),
+.quiz-editor textarea {
+  width: 100%;
+  padding: 0.7rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 0.55rem;
+  background: white;
+  color: var(--foreground);
+  font: inherit;
+}
+
+.quiz-question-list,
+.quiz-options-editor {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.quiz-question-editor {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+  margin: 0;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 0.7rem;
+  background: var(--surface);
+}
+
+.quiz-question-editor legend {
+  padding-inline: 0.4rem;
+  color: var(--accent-dark);
+  font-weight: 800;
+}
+
+.quiz-options-editor > span {
+  color: var(--muted);
+  font-size: 0.84rem;
+  font-weight: 750;
+}
+
+.quiz-option-editor {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.quiz-option-editor input[type="radio"] {
+  width: 1.1rem;
+  height: 1.1rem;
+  accent-color: var(--accent);
+}
+
+.small-button {
+  min-height: 2.25rem;
+  padding: 0.4rem 0.7rem;
+  font-size: 0.8rem;
+}
+
+.secondary-button {
+  border-color: var(--border);
+  background: var(--surface);
+  color: var(--foreground);
+}
+
+.secondary-button:hover:not(:disabled) {
+  background: #e6f1ec;
+  color: var(--accent-dark);
+}
+
+.course-quiz-links {
+  display: grid;
+  gap: 0.45rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.course-quiz-links h3 {
+  margin: 0 0 0.35rem;
+  font-size: 1rem;
+}
+
+.course-quiz-links small {
+  display: block;
+  margin-top: 0.2rem;
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.quiz-taker {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.quiz-take-question {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+  margin: 0;
+  padding: 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: 0.8rem;
+}
+
+.quiz-take-question legend {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  max-width: 95%;
+  padding-inline: 0.35rem;
+  font-weight: 800;
+}
+
+.quiz-take-question legend span {
+  display: inline-grid;
+  min-width: 2rem;
+  height: 2rem;
+  place-items: center;
+  border-radius: 50%;
+  background: #e6f1ec;
+  color: var(--accent-dark);
+}
+
+.quiz-take-options {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.quiz-take-options label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: 0.65rem;
+  cursor: pointer;
+}
+
+.quiz-take-options label:has(input:checked) {
+  border-color: var(--accent);
+  background: #edf7f2;
+}
+
+.quiz-take-options input {
+  width: 1.1rem;
+  height: 1.1rem;
+  accent-color: var(--accent);
+}
+
+.quiz-result {
+  text-align: center;
+}
+
+.quiz-result h2 {
+  margin-top: 1rem;
+  font-size: clamp(3rem, 8vw, 5rem);
+}
+
+.quiz-result > strong {
+  color: var(--accent);
+  font-size: 1.4rem;
+}
+
+.quiz-result .button-row {
+  justify-content: center;
+}
+
+.results-table {
+  padding: 1rem;
+}
+
 @media (max-width: 35rem) {
   .site-header {
     padding-inline: 1rem;
@@ -629,4 +841,10 @@ progress::-moz-progress-bar {
   .lesson-viewer {
     grid-template-columns: 1fr;
   }
+
+  .quiz-option-editor {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .quiz-option-editor .small-button { grid-column: 2; }
 }

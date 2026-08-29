@@ -21,7 +21,10 @@ export function DashboardHeader({ user }: { user: CurrentUser }) {
       <nav aria-label="Dashboard navigation">
         <Link href={dashboardRoute}>{dashboardLabel}</Link>
         {user.role.name === ROLE.STUDENT && (
-          <Link href="/student/my-courses">My Courses</Link>
+          <>
+            <Link href="/student/my-courses">My Courses</Link>
+            <Link href="/student/results">Results</Link>
+          </>
         )}
         <span>{user.username} · {user.role.name}</span>
         <form action={logoutAction}>
