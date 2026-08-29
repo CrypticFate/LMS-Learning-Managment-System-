@@ -1,0 +1,229 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f5f7f4;
+  --surface: #ffffff;
+  --foreground: #17211b;
+  --muted: #617067;
+  --border: #dce3de;
+  --accent: #176b4d;
+  --accent-dark: #10523a;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: Arial, Helvetica, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+a {
+  color: inherit;
+  text-underline-offset: 0.2em;
+}
+
+.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 4.5rem;
+  padding: 0 5vw;
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+}
+
+.brand {
+  color: var(--accent-dark);
+  font-size: 1.2rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  text-decoration: none;
+}
+
+.site-header nav {
+  display: flex;
+  gap: 1.25rem;
+}
+
+.site-header nav a {
+  color: var(--muted);
+  font-size: 0.92rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.site-header nav a:hover {
+  color: var(--accent);
+}
+
+.page-shell {
+  width: min(70rem, 90vw);
+  margin: 0 auto;
+  padding: 5rem 0;
+}
+
+.hero {
+  display: grid;
+  align-content: center;
+  min-height: calc(100vh - 4.5rem);
+  padding-bottom: 10rem;
+}
+
+h1 {
+  max-width: 16ch;
+  margin: 0.35rem 0 1rem;
+  font-size: clamp(2.4rem, 7vw, 5.5rem);
+  line-height: 0.98;
+  letter-spacing: -0.055em;
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--accent);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.lead,
+.muted {
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.lead {
+  max-width: 41rem;
+  font-size: 1.15rem;
+}
+
+.button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.button,
+button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.9rem;
+  padding: 0.7rem 1.1rem;
+  border: 1px solid transparent;
+  border-radius: 0.65rem;
+  font: inherit;
+  font-weight: 750;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.button.primary,
+button {
+  background: var(--accent);
+  color: white;
+}
+
+.button.primary:hover,
+button:hover:not(:disabled) {
+  background: var(--accent-dark);
+}
+
+.button.secondary {
+  border-color: var(--border);
+  background: var(--surface);
+}
+
+button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.auth-shell {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 2rem 1rem;
+}
+
+.auth-card {
+  display: grid;
+  gap: 1.5rem;
+  width: min(100%, 28rem);
+  padding: clamp(1.5rem, 5vw, 2.5rem);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: var(--surface);
+  box-shadow: 0 1.5rem 4rem rgb(23 33 27 / 8%);
+}
+
+.auth-card h1,
+.dashboard-shell h1 {
+  max-width: none;
+  font-size: clamp(2rem, 6vw, 3.25rem);
+  line-height: 1.05;
+}
+
+.auth-card p {
+  margin-bottom: 0;
+}
+
+.auth-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.auth-form label {
+  display: grid;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 750;
+}
+
+.auth-form input {
+  width: 100%;
+  min-height: 2.9rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 0.55rem;
+  background: white;
+  color: var(--foreground);
+  font: inherit;
+}
+
+.auth-form input:focus-visible {
+  border-color: var(--accent);
+  outline: 3px solid rgb(23 107 77 / 15%);
+}
+
+.form-error {
+  margin: 0;
+  color: #a42929;
+  font-size: 0.88rem;
+}
+
+.dashboard-shell {
+  min-height: 100vh;
+}
+
+@media (max-width: 35rem) {
+  .site-header {
+    padding-inline: 1rem;
+  }
+
+  .site-header nav {
+    gap: 0.8rem;
+  }
+}
