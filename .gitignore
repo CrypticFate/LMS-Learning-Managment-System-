@@ -13,9 +13,11 @@ frontend/out/
 # Strapi
 backend/.cache/
 backend/.strapi/
+backend/.strapi-updater.json
 backend/.tmp/
 backend/build/
 backend/dist/
+backend/types/generated/
 backend/public/uploads/*
 !backend/public/uploads/.gitkeep
 
