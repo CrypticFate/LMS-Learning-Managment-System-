@@ -1,6 +1,12 @@
 import Link from 'next/link';
 
-export default function PublicLayout({ children }: { children: React.ReactNode }) {
+import { logoutAction } from '@/features/auth/actions';
+import { getCurrentUser } from '@/features/auth/session';
+import { DASHBOARD_ROUTE_BY_ROLE, ROLE } from '@/lib/constants';
+
+export default async function PublicLayout({ children }: { children: React.ReactNode }) {
+  const user = await getCurrentUser();
+
   return (
     <>
       <header className="site-header">
@@ -10,7 +16,19 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
         <nav aria-label="Primary navigation">
           <Link href="/courses">Courses</Link>
           <Link href="/blog">Blog</Link>
-          <Link href="/login">Sign in</Link>
+          {user ? (
+            <>
+              {user.role.name === ROLE.STUDENT && (
+                <Link href="/student/my-courses">My Courses</Link>
+              )}
+              <Link href={DASHBOARD_ROUTE_BY_ROLE[user.role.name]}>Dashboard</Link>
+              <form action={logoutAction}>
+                <button className="link-button" type="submit">Sign out</button>
+              </form>
+            </>
+          ) : (
+            <Link href="/login">Sign in</Link>
+          )}
         </nav>
       </header>
       {children}

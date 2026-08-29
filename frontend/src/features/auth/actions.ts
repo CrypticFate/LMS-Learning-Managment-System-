@@ -1,15 +1,16 @@
 'use server';
 
 import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
 
 import type {
-  ActionResult,
   AuthActionState,
   CurrentUser,
 } from '@/features/auth/types';
 import {
   AUTH_COOKIE,
   DASHBOARD_ROUTE_BY_ROLE,
+  ROLE,
 } from '@/lib/constants';
 import { strapiFetch } from '@/lib/strapi';
 
@@ -38,7 +39,13 @@ function jwtExpiresAt(jwt: string): Date | undefined {
   }
 }
 
-async function establishSession(jwt: string): Promise<AuthActionState> {
+async function getUserForJwt(jwt: string): Promise<CurrentUser> {
+  return strapiFetch<CurrentUser>('/api/users/me?populate=role', {
+    headers: { Authorization: `Bearer ${jwt}` },
+  });
+}
+
+async function setSessionCookie(jwt: string): Promise<void> {
   const cookieStore = await cookies();
   cookieStore.set(AUTH_COOKIE, jwt, {
     httpOnly: true,
@@ -47,15 +54,15 @@ async function establishSession(jwt: string): Promise<AuthActionState> {
     path: '/',
     expires: jwtExpiresAt(jwt),
   });
+}
 
+async function establishSession(jwt: string): Promise<AuthActionState> {
   try {
-    const user = await strapiFetch<CurrentUser>('/api/users/me?populate=role', {
-      headers: { Authorization: `Bearer ${jwt}` },
-    });
+    const user = await getUserForJwt(jwt);
+    await setSessionCookie(jwt);
     const redirectTo = DASHBOARD_ROUTE_BY_ROLE[user.role.name] ?? '/';
     return { ok: true, data: { redirectTo } };
   } catch {
-    cookieStore.delete(AUTH_COOKIE);
     return { ok: false, error: initialError };
   }
 }
@@ -77,6 +84,35 @@ export async function loginAction(
       body: JSON.stringify({ identifier, password }),
     });
     return establishSession(response.jwt);
+  } catch {
+    return { ok: false, error: initialError };
+  }
+}
+
+export async function adminLoginAction(
+  _previousState: AuthActionState,
+  formData: FormData,
+): Promise<AuthActionState> {
+  const identifier = textField(formData, 'identifier');
+  const password = textField(formData, 'password');
+
+  if (!identifier || !password) {
+    return { ok: false, error: 'Email or username and password are required.' };
+  }
+
+  try {
+    const response = await strapiFetch<StrapiAuthResponse>('/api/auth/local', {
+      method: 'POST',
+      body: JSON.stringify({ identifier, password }),
+    });
+    const user = await getUserForJwt(response.jwt);
+
+    if (user.role.name !== ROLE.ADMIN) {
+      return { ok: false, error: 'Admin access only.' };
+    }
+
+    await setSessionCookie(response.jwt);
+    return { ok: true, data: { redirectTo: '/admin' } };
   } catch {
     return { ok: false, error: initialError };
   }
@@ -111,7 +147,7 @@ export async function registerAction(
   }
 }
 
-export async function logoutAction(): Promise<ActionResult<null>> {
+export async function logoutAction(): Promise<never> {
   (await cookies()).delete(AUTH_COOKIE);
-  return { ok: true, data: null };
+  redirect('/login');
 }

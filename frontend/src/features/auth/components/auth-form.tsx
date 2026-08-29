@@ -1,10 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useActionState, useEffect } from 'react';
 
 import {
+  adminLoginAction,
   loginAction,
   registerAction,
 } from '@/features/auth/actions';
@@ -13,30 +13,39 @@ import type { AuthActionState } from '@/features/auth/types';
 const initialState: AuthActionState = { ok: false, error: '' };
 
 type AuthFormProps = {
-  mode: 'login' | 'register';
+  mode: 'admin-login' | 'login' | 'register';
 };
 
 export function AuthForm({ mode }: AuthFormProps) {
-  const router = useRouter();
-  const action = mode === 'login' ? loginAction : registerAction;
+  const action = mode === 'admin-login'
+    ? adminLoginAction
+    : mode === 'login'
+      ? loginAction
+      : registerAction;
   const [state, formAction, pending] = useActionState(action, initialState);
 
   useEffect(() => {
     if (state.ok) {
-      router.replace(state.data.redirectTo);
-      router.refresh();
+      // Start a fresh document request after the Server Action sets the cookie.
+      // This prevents a public layout cached before login from showing guest UI.
+      window.location.replace(state.data.redirectTo);
     }
-  }, [router, state]);
+  }, [state]);
 
-  const isLogin = mode === 'login';
+  const isLogin = mode !== 'register';
+  const isAdminLogin = mode === 'admin-login';
 
   return (
     <div className="auth-card">
       <div>
-        <p className="eyebrow">LMS workspace</p>
-        <h1>{isLogin ? 'Welcome back' : 'Create a student account'}</h1>
+        <p className="eyebrow">{isAdminLogin ? 'Admin portal' : 'LMS workspace'}</p>
+        <h1>
+          {isAdminLogin ? 'Admin sign in' : isLogin ? 'Welcome back' : 'Create a student account'}
+        </h1>
         <p className="muted">
-          {isLogin
+          {isAdminLogin
+            ? 'Use an Admin account to continue.'
+            : isLogin
             ? 'Sign in to continue to your role-specific dashboard.'
             : 'New public accounts start with the Student role.'}
         </p>
@@ -78,15 +87,27 @@ export function AuthForm({ mode }: AuthFormProps) {
         )}
 
         <button type="submit" disabled={pending}>
-          {pending ? 'Please wait…' : isLogin ? 'Sign in' : 'Create account'}
+          {pending
+            ? 'Please wait…'
+            : isAdminLogin
+              ? 'Sign in as admin'
+              : isLogin
+                ? 'Sign in'
+                : 'Create account'}
         </button>
       </form>
 
       <p className="muted">
-        {isLogin ? 'Need an account? ' : 'Already registered? '}
-        <Link href={isLogin ? '/register' : '/login'}>
-          {isLogin ? 'Register' : 'Sign in'}
-        </Link>
+        {isAdminLogin ? (
+          <Link href="/">Return to LMS home</Link>
+        ) : (
+          <>
+            {isLogin ? 'Need an account? ' : 'Already registered? '}
+            <Link href={isLogin ? '/register' : '/login'}>
+              {isLogin ? 'Register' : 'Sign in'}
+            </Link>
+          </>
+        )}
       </p>
     </div>
   );

@@ -37,6 +37,5 @@ export const config = {
     '/student/:path*',
     '/instructor/:path*',
     '/content-manager/:path*',
-    '/admin/:path*',
   ],
 };

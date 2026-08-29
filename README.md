@@ -67,14 +67,16 @@ Authentication calls run through Next.js Server Actions. The Strapi JWT is store
 
 ## Demo accounts
 
-Plan 02 will seed the four review accounts after the application roles and backend policies are implemented:
+The backend bootstrap idempotently seeds these review accounts. All use the password `Passw0rd!`. Public registration always assigns the Student role; only an Admin can change a user's role.
 
 | Role | Email | Password |
 |---|---|---|
-| Admin | To be added in Plan 02 | To be added in Plan 02 |
-| Content Manager | To be added in Plan 02 | To be added in Plan 02 |
-| Instructor | To be added in Plan 02 | To be added in Plan 02 |
-| Student | To be added in Plan 02 | To be added in Plan 02 |
+| Admin | `admin@lms.test` | `Passw0rd!` |
+| Content Manager | `manager@lms.test` | `Passw0rd!` |
+| Instructor | `instructor@lms.test` | `Passw0rd!` |
+| Student | `student@lms.test` | `Passw0rd!` |
+
+The same bootstrap adds three demo courses with ordered lessons. The demo Student is enrolled in **Web Development Foundations**, so its lesson viewer is ready immediately after login. Existing seeded records are preserved on later restarts.
 
 ## Completed features
 
@@ -86,8 +88,10 @@ Plan 02 will seed the four review accounts after the application roles and backe
 - [x] Server-only typed Strapi fetch wrapper
 - [x] httpOnly-cookie login/register session foundation
 - [x] Middleware authentication checks and role-gated dashboard layouts
-- [ ] Backend role seeding and authoritative RBAC policies (Plan 02)
-- [ ] Course, lesson, and enrollment flows (Plan 02)
+- [x] Four-role seeding, Student-default registration, and demo accounts
+- [x] Authoritative role, ownership, enrollment, lesson, and quiz policies (Plan 02)
+- [x] Course and ordered lesson CRUD with server-owned courses (Plan 02)
+- [x] Student enrollment, duplicate protection, My Courses, and gated lesson viewer (Plan 02)
 - [ ] Progress tracking (Plan 03)
 - [ ] Quiz auto-grading and stored attempts (Plan 04)
 - [ ] Admin panel and platform statistics (Plan 05)
@@ -114,3 +118,12 @@ Import the same repository with `frontend` as the root directory, select Node.js
 cd backend && npm run typecheck && npm run build
 cd frontend && npm run lint && npm run typecheck && npm run build
 ```
+
+With the backend running, execute the direct-API authorization matrix from `02-core-features-and-rbac.md`:
+
+```bash
+cd backend
+npm run verify:rbac
+```
+
+The verifier checks all 10 required rows plus demo-role/default-role seeding, lesson ownership, lesson CRUD, and ascending lesson order.

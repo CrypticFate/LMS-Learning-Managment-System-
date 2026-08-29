@@ -1,6 +1,11 @@
 import Link from 'next/link';
 
-export default function HomePage() {
+import { getCurrentUser } from '@/features/auth/session';
+import { DASHBOARD_ROUTE_BY_ROLE } from '@/lib/constants';
+
+export default async function HomePage() {
+  const user = await getCurrentUser();
+
   return (
     <main className="page-shell hero">
       <p className="eyebrow">Learn with a clear path</p>
@@ -10,12 +15,25 @@ export default function HomePage() {
         and administrators.
       </p>
       <div className="button-row">
-        <Link className="button primary" href="/courses">
-          Browse courses
-        </Link>
-        <Link className="button secondary" href="/register">
-          Create an account
-        </Link>
+        {user ? (
+          <>
+            <Link className="button primary" href={DASHBOARD_ROUTE_BY_ROLE[user.role.name]}>
+              Open dashboard
+            </Link>
+            <Link className="button secondary" href="/courses">
+              Browse courses
+            </Link>
+          </>
+        ) : (
+          <>
+            <Link className="button primary" href="/courses">
+              Browse courses
+            </Link>
+            <Link className="button secondary" href="/register">
+              Create an account
+            </Link>
+          </>
+        )}
       </div>
     </main>
   );
