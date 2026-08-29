@@ -1,6 +1,6 @@
-# OpenCourse LMS
+# LMS (Learning Managment System)
 
-OpenCourse is a role-aware learning management system for creating courses, enrolling students, tracking lesson progress, grading quizzes, and publishing learning content.
+This LMS is a role-aware learning management system for creating courses, enrolling students, tracking lesson progress, grading quizzes, and publishing learning content.
 
 ## Tech stack
 

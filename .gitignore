@@ -1,35 +1,23 @@
-# Dependencies
-node_modules/
-
-# Local environment and secrets
-.env
-.env.*
-!.env.example
-
-# Next.js
-frontend/.next/
-frontend/out/
-
-# Strapi
-backend/.cache/
-backend/.strapi/
-backend/.strapi-updater.json
-backend/.tmp/
-backend/build/
-backend/dist/
-backend/types/generated/
-backend/public/uploads/*
-!backend/public/uploads/.gitkeep
-
-# Local databases
-*.db
-*.db-journal
-
-# Logs and editor files
+# Repository-wide logs and diagnostic output
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Operating system and editor files
 .DS_Store
+Thumbs.db
 .idea/
 .vscode/
+*.swp
+*.swo
 
-# TypeScript
-*.tsbuildinfo
+# Root-level local environment files
+/.env
+/.env.*
+!/.env.example
+
+# Root-level dependencies and test output
+/node_modules/
+/coverage/

@@ -3,8 +3,8 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "OpenCourse LMS",
-    template: "%s | OpenCourse LMS",
+    default: "LMS (Learning Managment System)",
+    template: "%s | LMS (Learning Managment System)",
   },
   description: "A role-aware learning management system built with Next.js and Strapi.",
 };

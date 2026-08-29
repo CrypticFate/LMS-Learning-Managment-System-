@@ -5,7 +5,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
     <>
       <header className="site-header">
         <Link className="brand" href="/">
-          OpenCourse
+          LMS (Learning Managment System)
         </Link>
         <nav aria-label="Primary navigation">
           <Link href="/courses">Courses</Link>

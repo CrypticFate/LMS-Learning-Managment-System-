@@ -6,7 +6,7 @@ export default function HomePage() {
       <p className="eyebrow">Learn with a clear path</p>
       <h1>Courses, progress, and feedback in one focused workspace.</h1>
       <p className="lead">
-        OpenCourse is the shared home for students, instructors, content managers,
+        This LMS is the shared home for students, instructors, content managers,
         and administrators.
       </p>
       <div className="button-row">
