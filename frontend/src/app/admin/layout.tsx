@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 
-import { DashboardHeader } from '@/features/auth/components/dashboard-header';
+import { AdminSidebar } from '@/features/admin/components/admin-sidebar';
 import { getCurrentUser } from '@/features/auth/session';
 import { DASHBOARD_ROUTE_BY_ROLE, ROLE } from '@/lib/constants';
 
@@ -16,9 +16,9 @@ export default async function AdminLayout({
   }
 
   return (
-    <>
-      <DashboardHeader user={user} />
-      <main className="page-shell dashboard-shell">{children}</main>
-    </>
+    <div className="admin-layout-shell">
+      <AdminSidebar user={user} />
+      <main className="admin-layout-main dashboard-shell">{children}</main>
+    </div>
   );
 }

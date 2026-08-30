@@ -3,9 +3,11 @@
 import { useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
 
+import { Select } from '@/components/ui/select';
+import { ROLE } from '@/lib/constants';
+
 import { changeUserRoleAction } from '../actions';
 import type { AdminUser, RoleChangeState } from '../types';
-import { ROLE } from '@/lib/constants';
 
 const INITIAL_STATE: RoleChangeState = { ok: false, message: null };
 
@@ -13,8 +15,9 @@ function RoleSelect({ currentRole }: { currentRole?: string }) {
   const { pending } = useFormStatus();
 
   return (
-    <select
+    <Select
       aria-label="User role"
+      className="min-w-44"
       defaultValue={currentRole}
       disabled={pending}
       name="role"
@@ -23,7 +26,7 @@ function RoleSelect({ currentRole }: { currentRole?: string }) {
       {Object.values(ROLE).map((role) => (
         <option key={role} value={role}>{role}</option>
       ))}
-    </select>
+    </Select>
   );
 }
 
@@ -34,13 +37,13 @@ export function RoleSelector({ user }: { user: AdminUser }) {
   );
 
   return (
-    <form action={action} className="role-change-form">
+    <form action={action} className="role-change-form admin-role-control">
       <RoleSelect currentRole={user.role?.name} />
       <span
         className={state.message ? (state.ok ? 'form-success' : 'form-error') : 'muted'}
         role={state.ok ? 'status' : state.message ? 'alert' : undefined}
       >
-        {pending ? 'Saving…' : state.message}
+        {pending ? 'Saving...' : state.message}
       </span>
     </form>
   );

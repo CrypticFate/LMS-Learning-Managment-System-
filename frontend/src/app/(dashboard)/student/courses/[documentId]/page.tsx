@@ -1,5 +1,9 @@
 import Link from 'next/link';
 
+import { Badge } from '@/components/ui/badge';
+import { Button, buttonVariants } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Textarea } from '@/components/ui/textarea';
 import { renderForRoles } from '@/features/auth/components/role-guard';
 import {
   createCommentAction,
@@ -113,8 +117,14 @@ async function renderLessonViewer({ params, searchParams }: LessonViewerProps) {
 
   return (
     <>
-      <p className="eyebrow">My Courses</p>
-      <h1>{course.title}</h1>
+      <div className="learning-page">
+        <section className="learning-hero">
+        <div>
+          <Badge variant="secondary">My Courses</Badge>
+          <h1>{course.title}</h1>
+          <p>Work through lessons, quizzes, and course discussions.</p>
+        </div>
+        </section>
       <section className="course-progress" aria-label="Course progress">
         <div>
           <strong>{progress.completed} of {progress.totalLessons} lessons</strong>
@@ -164,12 +174,13 @@ async function renderLessonViewer({ params, searchParams }: LessonViewerProps) {
             );
           })}
         </aside>
-        <article className="lesson-pane">
-          {!selected ? (
+        <Card className="lesson-pane">
+          <CardContent className="p-0">
+            {!selected ? (
             <p className="empty-state">This course has no lessons yet.</p>
           ) : (
             <>
-              <p className="eyebrow">{selectedEntry.moduleTitle} · Lesson {selectedIndex + 1} of {allLessons.length}</p>
+              <Badge variant="outline">{selectedEntry.moduleTitle} · Lesson {selectedIndex + 1} of {allLessons.length}</Badge>
               <h2>{selected.title}</h2>
               {videoUrl && (
                 <div className="video-frame">
@@ -190,21 +201,21 @@ async function renderLessonViewer({ params, searchParams }: LessonViewerProps) {
                 ).bind(null, documentId, selected.documentId)}
                 className="completion-toggle"
               >
-                <button
+                <Button
                   className={completedLessons.has(selected.documentId) ? 'completed-button' : ''}
                   type="submit"
                 >
                   {completedLessons.has(selected.documentId)
                     ? 'Completed ✓ — mark incomplete'
                     : 'Mark complete'}
-                </button>
+                </Button>
               </form>
               <div className="button-row lesson-navigation">
                 {selectedIndex > 0 && (
-                  <Link className="button secondary" href={`/student/courses/${documentId}?lesson=${selectedIndex - 1}`}>Previous</Link>
+                  <Link className={buttonVariants({ variant: 'outline' })} href={`/student/courses/${documentId}?lesson=${selectedIndex - 1}`}>Previous</Link>
                 )}
                 {selectedIndex < allLessons.length - 1 && (
-                  <Link className="button primary" href={`/student/courses/${documentId}?lesson=${selectedIndex + 1}`}>Next lesson</Link>
+                  <Link className={buttonVariants()} href={`/student/courses/${documentId}?lesson=${selectedIndex + 1}`}>Next lesson</Link>
                 )}
               </div>
 
@@ -212,8 +223,8 @@ async function renderLessonViewer({ params, searchParams }: LessonViewerProps) {
               <section className="comments-section">
                 <h3>Comments ({comments.length})</h3>
                 <form action={createCommentAction.bind(null, selected.documentId, documentId)} className="comment-form">
-                  <textarea name="body" rows={3} placeholder="Write a comment..." required />
-                  <button type="submit">Post comment</button>
+                  <Textarea name="body" rows={3} placeholder="Write a comment..." required />
+                  <Button type="submit">Post comment</Button>
                 </form>
                 {comments.length === 0 ? (
                   <p className="muted">No comments yet. Be the first!</p>
@@ -228,7 +239,7 @@ async function renderLessonViewer({ params, searchParams }: LessonViewerProps) {
                         <p className="comment-body">{comment.body}</p>
                         {comment.author?.id === currentUser?.id && (
                           <form action={deleteCommentAction.bind(null, comment.documentId, documentId)}>
-                            <button className="danger-button small-button" type="submit">Delete</button>
+                            <Button className="danger-button" size="sm" type="submit" variant="outline">Delete</Button>
                           </form>
                         )}
                       </div>
@@ -238,7 +249,9 @@ async function renderLessonViewer({ params, searchParams }: LessonViewerProps) {
               </section>
             </>
           )}
-        </article>
+          </CardContent>
+        </Card>
+      </div>
       </div>
     </>
   );

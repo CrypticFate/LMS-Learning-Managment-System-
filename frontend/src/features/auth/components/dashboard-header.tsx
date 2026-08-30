@@ -16,7 +16,8 @@ export function DashboardHeader({ user }: { user: CurrentUser }) {
   return (
     <header className="site-header dashboard-header">
       <Link className="brand" href={dashboardRoute}>
-        LMS
+        <span className="brand-mark">CPS</span>
+        <span>CPS Academy</span>
       </Link>
       <nav aria-label="Dashboard navigation">
         {user.role.name === ROLE.ADMIN ? (

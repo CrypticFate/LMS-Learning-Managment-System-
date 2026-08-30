@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 
-import { DashboardHeader } from '@/features/auth/components/dashboard-header';
+import { DashboardSidebar } from '@/features/auth/components/dashboard-sidebar';
 import { getCurrentUser } from '@/features/auth/session';
 
 export default async function DashboardLayout({
@@ -12,9 +12,9 @@ export default async function DashboardLayout({
   if (!user) redirect('/login');
 
   return (
-    <>
-      <DashboardHeader user={user} />
-      <main className="page-shell dashboard-shell">{children}</main>
-    </>
+    <div className="dashboard-layout-shell">
+      <DashboardSidebar user={user} />
+      <main className="dashboard-layout-main dashboard-shell">{children}</main>
+    </div>
   );
 }

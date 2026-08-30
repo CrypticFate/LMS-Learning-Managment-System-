@@ -1,5 +1,6 @@
 import Link from 'next/link';
 
+import { buttonVariants } from '@/components/ui/button';
 import { logoutAction } from '@/features/auth/actions';
 import { getCurrentUser } from '@/features/auth/session';
 import { DASHBOARD_ROUTE_BY_ROLE, ROLE } from '@/lib/constants';
@@ -11,7 +12,8 @@ export default async function PublicLayout({ children }: { children: React.React
     <>
       <header className="site-header">
         <Link className="brand" href="/">
-          LMS (Learning Managment System)
+          <span className="brand-mark">CPS</span>
+          <span>CPS Academy</span>
         </Link>
         <nav aria-label="Primary navigation">
           <Link href="/courses">Courses</Link>
@@ -27,7 +29,9 @@ export default async function PublicLayout({ children }: { children: React.React
               </form>
             </>
           ) : (
-            <Link href="/login">Sign in</Link>
+            <Link className={buttonVariants({ variant: 'outline', size: 'sm' })} href="/login">
+              Sign in
+            </Link>
           )}
         </nav>
       </header>

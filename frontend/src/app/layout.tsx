@@ -3,10 +3,11 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "LMS (Learning Managment System)",
-    template: "%s | LMS (Learning Managment System)",
+    default: "CPS Academy",
+    template: "%s | CPS Academy",
   },
-  description: "A role-aware learning management system built with Next.js and Strapi.",
+  description:
+    "Structured competitive programming and job-ready software engineering courses with mentor-led guidance.",
 };
 
 export default function RootLayout({

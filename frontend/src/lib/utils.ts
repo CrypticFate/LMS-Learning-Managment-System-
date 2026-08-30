@@ -8,3 +8,7 @@ export function getMediaUrl(path: string | null | undefined): string | null {
   );
   return `${baseUrl}${path.startsWith('/') ? path : `/${path}`}`;
 }
+
+export function cn(...classes: Array<string | false | null | undefined>): string {
+  return classes.filter(Boolean).join(' ');
+}

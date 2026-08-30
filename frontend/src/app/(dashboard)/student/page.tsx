@@ -1,17 +1,45 @@
 import Link from 'next/link';
 
+import { Badge } from '@/components/ui/badge';
+import { buttonVariants } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { renderForRoles } from '@/features/auth/components/role-guard';
 import { ROLE } from '@/lib/constants';
 
 export default function StudentDashboardPage() {
   return renderForRoles([ROLE.STUDENT], () => (
-    <>
-      <p className="eyebrow">Student dashboard</p>
-      <h1>My learning</h1>
-      <p className="lead">Continue one of your enrolled courses.</p>
-      <div className="button-row">
-        <Link className="button primary" href="/student/my-courses">My Courses</Link>
-      </div>
-    </>
+    <div className="learning-page">
+      <section className="learning-hero">
+        <div>
+          <Badge variant="secondary">Student dashboard</Badge>
+          <h1>My learning</h1>
+          <p>Continue your enrolled courses, track progress, and review quiz history.</p>
+        </div>
+        <Link className={buttonVariants()} href="/student/my-courses">My Courses</Link>
+      </section>
+
+      <section className="learning-quick-grid section-gap">
+        <Card className="learning-action-card">
+          <CardHeader>
+            <Badge variant="outline">Courses</Badge>
+            <CardTitle>Pick up where you left off</CardTitle>
+            <CardDescription>Open your enrolled course list and resume the next lesson.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Link className={buttonVariants({ variant: 'outline' })} href="/student/my-courses">Open courses</Link>
+          </CardContent>
+        </Card>
+        <Card className="learning-action-card">
+          <CardHeader>
+            <Badge variant="outline">Results</Badge>
+            <CardTitle>Review quiz attempts</CardTitle>
+            <CardDescription>See every submission, score, and course link in one table.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Link className={buttonVariants({ variant: 'outline' })} href="/student/results">View results</Link>
+          </CardContent>
+        </Card>
+      </section>
+    </div>
   ));
 }

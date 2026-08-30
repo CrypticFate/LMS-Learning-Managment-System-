@@ -1,6 +1,9 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
+import { Badge } from '@/components/ui/badge';
+import { buttonVariants } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { renderForRoles } from '@/features/auth/components/role-guard';
 import { QuizTaker } from '@/features/quiz/components/quiz-taker';
 import { getTakeQuiz } from '@/features/quiz/queries';
@@ -16,22 +19,30 @@ async function renderQuiz({ params }: QuizPageProps) {
   if (quiz.courseDocumentId !== documentId) notFound();
 
   return (
-    <>
-      <p className="eyebrow">Course quiz</p>
-      <h1>{quiz.title}</h1>
-      <p className="lead">
-        Choose one answer for each question. Your score is calculated securely on
-        the server and saved as a new attempt.
-      </p>
-      <div className="button-row">
-        <Link className="button secondary" href={`/student/courses/${documentId}`}>
+    <div className="learning-page">
+      <section className="learning-hero">
+        <div>
+          <Badge variant="secondary">Course quiz</Badge>
+          <h1>{quiz.title}</h1>
+          <p>
+            Choose one answer for each question. Your score is calculated securely on
+            the server and saved as a new attempt.
+          </p>
+        </div>
+        <Link className={buttonVariants({ variant: 'outline' })} href={`/student/courses/${documentId}`}>
           Back to course
         </Link>
-      </div>
-      <section className="panel section-gap">
-        <QuizTaker quiz={quiz} />
       </section>
-    </>
+      <Card className="admin-card section-gap">
+        <CardHeader>
+          <CardTitle>Questions</CardTitle>
+          <CardDescription>{quiz.questions.length} questions in this quiz.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <QuizTaker quiz={quiz} />
+        </CardContent>
+      </Card>
+    </div>
   );
 }
 
