@@ -55,15 +55,15 @@ const SHARED_AUTHENTICATED_ACTIONS = [
   'api::quiz.quiz.submit',
   'api::quiz.quiz.attempts',
   'api::quiz-attempt.quiz-attempt.me',
+  'api::blog-post.blog-post.find',
+  'api::blog-post.blog-post.findOneBySlug',
+  'api::blog-post.blog-post.mine',
   'api::blog-post.blog-post.create',
   'api::blog-post.blog-post.update',
   'api::blog-post.blog-post.delete',
-  'api::blog-post.blog-post.publish',
-  'api::blog-post.blog-post.unpublish',
   'api::admin-role.admin-role.listUsers',
   'api::admin-role.admin-role.updateRole',
   'api::admin-role.admin-role.stats',
-  'api::admin-role.admin-role.listBlogPosts',
 ];
 
 async function enablePermission(
@@ -148,6 +148,12 @@ export default {
       await enablePermission(strapi, publicRole.id, 'api::course.course.find');
       await enablePermission(strapi, publicRole.id, 'api::course.course.findOne');
       await enablePermission(strapi, publicRole.id, 'api::enrollment.enrollment.me');
+      await enablePermission(strapi, publicRole.id, 'api::blog-post.blog-post.find');
+      await enablePermission(
+        strapi,
+        publicRole.id,
+        'api::blog-post.blog-post.findOneBySlug',
+      );
     }
 
     for (const roleName of APP_ROLES) {

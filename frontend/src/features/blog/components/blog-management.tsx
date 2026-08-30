@@ -1,24 +1,32 @@
+import Link from 'next/link';
+
 import {
   createBlogPostAction,
   deleteBlogPostAction,
-  publishBlogPostAction,
-  unpublishBlogPostAction,
+  toggleBlogPostStatusAction,
   updateBlogPostAction,
 } from '../actions';
-import { getAdminBlogPosts } from '../queries';
+import { getManageableBlogPosts } from '../queries';
 
 export async function BlogManagement() {
-  const posts = await getAdminBlogPosts();
+  const posts = await getManageableBlogPosts();
 
   return (
     <>
       <section className="panel stack">
-        <h2>Create a draft</h2>
+        <h2>Write a post</h2>
         <form action={createBlogPostAction} className="content-form">
           <label>Title<input name="title" required /></label>
-          <label>Excerpt<textarea name="excerpt" rows={2} /></label>
-          <label>Content<textarea name="content" rows={8} required /></label>
-          <button type="submit">Create draft</button>
+          <label>Cover image URL<input name="coverImageUrl" type="url" /></label>
+          <label>Body<textarea name="body" rows={10} required /></label>
+          <label>
+            Initial status
+            <select defaultValue="draft" name="status">
+              <option value="draft">Draft</option>
+              <option value="published">Published</option>
+            </select>
+          </label>
+          <button type="submit">Create post</button>
         </form>
       </section>
 
@@ -32,21 +40,25 @@ export async function BlogManagement() {
           <article className="panel stack" key={post.documentId}>
             <div className="section-heading">
               <div>
-                <span className={post.isPublished ? 'status-badge published' : 'status-badge'}>
-                  {post.isPublished ? 'Published' : 'Draft'}
+                <span className={post.status === 'published' ? 'status-badge published' : 'status-badge'}>
+                  {post.status === 'published' ? 'Published' : 'Draft'}
                 </span>
                 <h2 className="admin-blog-title">{post.title}</h2>
                 <p className="muted">
                   {post.author?.username ? `Author: ${post.author.username}` : 'Unknown author'}
                 </p>
+                {post.status === 'published' && (
+                  <Link href={`/blog/${post.slug}`}>View public post</Link>
+                )}
               </div>
               <div className="button-row admin-content-actions">
-                <form action={(post.isPublished
-                  ? unpublishBlogPostAction
-                  : publishBlogPostAction
-                ).bind(null, post.documentId)}>
+                <form action={toggleBlogPostStatusAction.bind(
+                  null,
+                  post.documentId,
+                  post.status === 'published' ? 'draft' : 'published',
+                )}>
                   <button className="secondary-button" type="submit">
-                    {post.isPublished ? 'Unpublish' : 'Publish'}
+                    {post.status === 'published' ? 'Unpublish' : 'Publish'}
                   </button>
                 </form>
                 <form action={deleteBlogPostAction.bind(null, post.documentId)}>
@@ -62,8 +74,9 @@ export async function BlogManagement() {
                 className="content-form compact-form"
               >
                 <label>Title<input defaultValue={post.title} name="title" required /></label>
-                <label>Excerpt<textarea defaultValue={post.excerpt ?? ''} name="excerpt" rows={2} /></label>
-                <label>Content<textarea defaultValue={post.content} name="content" rows={8} required /></label>
+                <label>Cover image URL<input defaultValue={post.coverImageUrl ?? ''} name="coverImageUrl" type="url" /></label>
+                <label>Body<textarea defaultValue={post.body} name="body" rows={10} required /></label>
+                <input name="status" type="hidden" value={post.status} />
                 <button type="submit">Save post</button>
               </form>
             </details>

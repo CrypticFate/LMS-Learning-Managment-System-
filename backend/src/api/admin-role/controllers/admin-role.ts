@@ -80,25 +80,13 @@ export default {
         .count({ where: { role: role.id } });
     }
 
-    const [totalUsers, totalCourses, totalEnrollments, draftPosts, publishedPosts] =
+    const [totalUsers, totalCourses, totalEnrollments, totalBlogPosts] =
       await Promise.all([
         strapi.db.query('plugin::users-permissions.user').count(),
         strapi.documents('api::course.course').count({}),
         strapi.documents('api::enrollment.enrollment').count({}),
-        strapi.documents('api::blog-post.blog-post').findMany({
-          status: 'draft',
-          fields: ['documentId'],
-          limit: 10000,
-        }),
-        strapi.documents('api::blog-post.blog-post').findMany({
-          status: 'published',
-          fields: ['documentId'],
-          limit: 10000,
-        }),
+        strapi.documents('api::blog-post.blog-post').count({}),
       ]);
-    const blogDocumentIds = new Set(
-      [...draftPosts, ...publishedPosts].map((post: any) => post.documentId),
-    );
 
     ctx.body = {
       data: {
@@ -106,43 +94,8 @@ export default {
         usersByRole,
         totalCourses,
         totalEnrollments,
-        totalBlogPosts: blogDocumentIds.size,
+        totalBlogPosts,
       },
-    };
-  },
-
-  async listBlogPosts(ctx: any) {
-    const [drafts, published] = await Promise.all([
-      strapi.documents('api::blog-post.blog-post').findMany({
-        status: 'draft',
-        populate: { author: { fields: ['id', 'documentId', 'username'] } },
-        sort: ['updatedAt:desc'],
-        limit: 10000,
-      }),
-      strapi.documents('api::blog-post.blog-post').findMany({
-        status: 'published',
-        populate: { author: { fields: ['id', 'documentId', 'username'] } },
-        sort: ['updatedAt:desc'],
-        limit: 10000,
-      }),
-    ]);
-
-    const byDocumentId = new Map<string, any>();
-    for (const post of published as any[]) {
-      byDocumentId.set(post.documentId, { ...post, isPublished: true });
-    }
-    for (const post of drafts as any[]) {
-      byDocumentId.set(post.documentId, {
-        ...post,
-        isPublished: byDocumentId.has(post.documentId),
-      });
-    }
-
-    ctx.body = {
-      data: [...byDocumentId.values()].sort(
-        (left, right) =>
-          new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime(),
-      ),
     };
   },
 };

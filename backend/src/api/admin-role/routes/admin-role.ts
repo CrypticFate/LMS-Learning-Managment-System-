@@ -18,11 +18,5 @@ export default {
       handler: 'admin-role.stats',
       config: { policies: ['global::is-admin'] },
     },
-    {
-      method: 'GET',
-      path: '/admin/blog-posts',
-      handler: 'admin-role.listBlogPosts',
-      config: { policies: ['global::is-admin'] },
-    },
   ],
 };

@@ -13,6 +13,7 @@
     "strapi": "strapi",
     "typecheck": "tsc --noEmit",
     "verify:admin": "node scripts/verify-admin.mjs",
+    "verify:blog": "node scripts/verify-blog.mjs",
     "verify:progress": "node scripts/verify-progress.mjs",
     "verify:quiz": "node scripts/verify-quiz.mjs",
     "verify:rbac": "node scripts/verify-rbac.mjs",

@@ -64,6 +64,7 @@ async function ensureStudent(adminJwt) {
 
 const stamp = Date.now();
 const adminJwt = await login('admin@lms.test');
+const managerJwt = await login('manager@lms.test');
 const instructorJwt = await login('instructor@lms.test');
 const admin = await currentUser(adminJwt);
 const verification = await ensureStudent(adminJwt);
@@ -82,7 +83,7 @@ try {
   for (const [label, jwt, path] of [
     ['Instructor cannot list users', instructorJwt, '/api/admin/users'],
     ['Instructor cannot read stats', instructorJwt, '/api/admin/stats'],
-    ['Instructor cannot list all blog posts', instructorJwt, '/api/admin/blog-posts'],
+    ['Instructor cannot open the blog manager', instructorJwt, '/api/blog-posts/mine'],
   ]) {
     response = await request(path, { jwt });
     check(label, response.status === 403, `${response.status} ${JSON.stringify(response.body)}`);
@@ -154,20 +155,20 @@ try {
   );
 
   response = await request('/api/blog-posts', {
-    jwt: instructorJwt,
+    jwt: managerJwt,
     method: 'POST',
     body: JSON.stringify({
       data: {
         title: `Admin verification draft ${stamp}`,
-        excerpt: 'A temporary cross-author management check.',
-        content: 'The Admin should be able to edit, publish, unpublish, and delete this draft.',
+        body: 'The Admin should be able to edit, publish, unpublish, and delete this draft.',
+        status: 'draft',
       },
     }),
   });
-  check('Instructor creates a blog draft', [200, 201].includes(response.status), JSON.stringify(response.body));
+  check('Content Manager creates a blog draft', [200, 201].includes(response.status), JSON.stringify(response.body));
   blogDocumentId = response.body.data.documentId;
 
-  response = await request('/api/admin/blog-posts', { jwt: adminJwt });
+  response = await request('/api/blog-posts/mine', { jwt: adminJwt });
   check(
     'Admin sees another author\'s draft',
     response.status === 200 && response.body.data.some((post) => post.documentId === blogDocumentId),
@@ -180,30 +181,31 @@ try {
     body: JSON.stringify({
       data: {
         title: `Admin-edited draft ${stamp}`,
-        excerpt: 'Edited by an Admin.',
-        content: 'This content was edited by an Admin who does not own the post.',
+        body: 'This content was edited by an Admin who does not own the post.',
       },
     }),
   });
   check('Admin edits another author\'s draft', response.status === 200, JSON.stringify(response.body));
 
-  response = await request(`/api/blog-posts/${blogDocumentId}/publish`, {
+  response = await request(`/api/blog-posts/${blogDocumentId}`, {
     jwt: adminJwt,
-    method: 'POST',
+    method: 'PUT',
+    body: JSON.stringify({ data: { status: 'published' } }),
   });
   check('Admin publishes another author\'s draft', response.status === 200, JSON.stringify(response.body));
 
-  response = await request('/api/admin/blog-posts', { jwt: adminJwt });
+  response = await request('/api/blog-posts/mine', { jwt: adminJwt });
   check(
     'Published state appears in the Admin list',
     response.status === 200 &&
-      response.body.data.some((post) => post.documentId === blogDocumentId && post.isPublished),
+      response.body.data.some((post) => post.documentId === blogDocumentId && post.status === 'published'),
     JSON.stringify(response.body),
   );
 
-  response = await request(`/api/blog-posts/${blogDocumentId}/unpublish`, {
+  response = await request(`/api/blog-posts/${blogDocumentId}`, {
     jwt: adminJwt,
-    method: 'POST',
+    method: 'PUT',
+    body: JSON.stringify({ data: { status: 'draft' } }),
   });
   check('Admin unpublishes another author\'s post', response.status === 200, JSON.stringify(response.body));
 } finally {

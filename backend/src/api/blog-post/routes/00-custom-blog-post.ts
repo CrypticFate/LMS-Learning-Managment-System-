@@ -1,16 +1,23 @@
 export default {
   routes: [
     {
-      method: 'POST',
-      path: '/blog-posts/:documentId/publish',
-      handler: 'blog-post.publish',
-      config: { policies: ['global::can-manage-blog'] },
+      method: 'GET',
+      path: '/blog-posts/mine',
+      handler: 'blog-post.mine',
+      config: {
+        policies: [
+          {
+            name: 'global::has-any-role',
+            config: { roles: ['Admin', 'Content Manager'] },
+          },
+        ],
+      },
     },
     {
-      method: 'POST',
-      path: '/blog-posts/:documentId/unpublish',
-      handler: 'blog-post.unpublish',
-      config: { policies: ['global::can-manage-blog'] },
+      method: 'GET',
+      path: '/blog-posts/:slug',
+      handler: 'blog-post.findOneBySlug',
+      config: { auth: false },
     },
   ],
 };

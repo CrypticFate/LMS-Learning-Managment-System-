@@ -5,20 +5,13 @@ export default async (policyContext: any, _config: unknown, { strapi }: any) => 
   const documentId = policyContext.params?.documentId ?? policyContext.params?.id;
   if (!user || !documentId) return false;
 
-  if ([ROLE.ADMIN, ROLE.CONTENT_MANAGER].includes(user.role?.name)) return true;
-  if (user.role?.name !== ROLE.INSTRUCTOR) return false;
+  if (user.role?.name === ROLE.ADMIN) return true;
+  if (user.role?.name !== ROLE.CONTENT_MANAGER) return false;
 
-  const blog =
-    (await strapi.documents('api::blog-post.blog-post').findOne({
-      documentId,
-      status: 'draft',
-      populate: { author: true },
-    })) ??
-    (await strapi.documents('api::blog-post.blog-post').findOne({
-      documentId,
-      status: 'published',
-      populate: { author: true },
-    }));
+  const blog = await strapi.documents('api::blog-post.blog-post').findOne({
+    documentId,
+    populate: { author: true },
+  });
 
   return Boolean(
     blog?.author &&

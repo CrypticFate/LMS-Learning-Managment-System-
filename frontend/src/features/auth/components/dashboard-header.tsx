@@ -27,7 +27,12 @@ export function DashboardHeader({ user }: { user: CurrentUser }) {
             <Link href="/admin/blog">Blog</Link>
           </>
         ) : (
-          <Link href={dashboardRoute}>{dashboardLabel}</Link>
+          <>
+            <Link href={dashboardRoute}>{dashboardLabel}</Link>
+            {user.role.name === ROLE.CONTENT_MANAGER && (
+              <Link href="/content-manager/blog">Blog</Link>
+            )}
+          </>
         )}
         {user.role.name === ROLE.STUDENT && (
           <>
