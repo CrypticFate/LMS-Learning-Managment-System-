@@ -5,7 +5,7 @@ import { useFormStatus } from 'react-dom';
 
 import type { QuizQuestion } from '../types';
 
-type EditorQuestion = QuizQuestion & { key: number };
+type EditorQuestion = QuizQuestion;
 
 type QuizEditorProps = {
   action: (formData: FormData) => Promise<void>;
@@ -14,11 +14,8 @@ type QuizEditorProps = {
   submitLabel: string;
 };
 
-let nextKey = 1;
-
 function blankQuestion(): EditorQuestion {
   return {
-    key: nextKey++,
     questionText: '',
     options: ['', ''],
     correctIndex: 0,
@@ -38,7 +35,7 @@ export function QuizEditor({
 }: QuizEditorProps) {
   const [questions, setQuestions] = useState<EditorQuestion[]>(() => (
     initialQuestions.length > 0
-      ? initialQuestions.map((question) => ({ ...question, key: nextKey++ }))
+      ? initialQuestions.map((question) => ({ ...question }))
       : [blankQuestion()]
   ));
 
@@ -77,7 +74,7 @@ export function QuizEditor({
 
       <div className="quiz-question-list">
         {questions.map((question, questionIndex) => (
-          <fieldset className="quiz-question-editor" key={question.key}>
+          <fieldset className="quiz-question-editor" key={questionIndex}>
             <legend>Question {questionIndex + 1}</legend>
             <label>
               Question text
@@ -98,7 +95,7 @@ export function QuizEditor({
                   <input
                     aria-label={`Mark option ${optionIndex + 1} correct`}
                     checked={question.correctIndex === optionIndex}
-                    name={`correct-${question.key}`}
+                    name={`correct-${questionIndex}`}
                     onChange={() => updateQuestion(questionIndex, (current) => ({
                       ...current,
                       correctIndex: optionIndex,
