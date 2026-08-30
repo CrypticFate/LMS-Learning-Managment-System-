@@ -130,7 +130,7 @@ export default factories.createCoreController('api::quiz.quiz', ({ strapi }) => 
 
     const updated = await strapi.documents('api::quiz.quiz').update({
       documentId: routeDocumentId(ctx),
-      data: input,
+      data: input as any,
       populate: { questions: true },
     });
     return { data: updated };

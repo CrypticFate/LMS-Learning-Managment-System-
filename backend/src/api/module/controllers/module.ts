@@ -9,6 +9,10 @@ import {
   relationDocumentId,
 } from '../../../policies/course-access';
 
+function documentData<T extends Record<string, unknown>>(data: T) {
+  return data as any;
+}
+
 export default factories.createCoreController('api::module.module', ({ strapi }) => ({
   async create(ctx) {
     const courseDocumentId = relationDocumentId(ctx.request.body?.data?.course);
@@ -21,12 +25,12 @@ export default factories.createCoreController('api::module.module', ({ strapi })
 
     const data = ctx.request.body?.data ?? {};
     const created = await strapi.documents('api::module.module').create({
-      data: {
+      data: documentData({
         title: data.title,
         description: data.description ?? null,
         order: data.order ?? 0,
         courses: { connect: [courseDocumentId] },
-      },
+      }),
       populate: { courses: { fields: ['documentId', 'title'] } },
     });
     return { data: created };
@@ -37,11 +41,11 @@ export default factories.createCoreController('api::module.module', ({ strapi })
     const data = ctx.request.body?.data ?? {};
     const updated = await strapi.documents('api::module.module').update({
       documentId,
-      data: {
+      data: documentData({
         title: data.title,
         description: data.description,
         order: data.order,
-      },
+      }),
     });
     return { data: updated };
   },
@@ -70,7 +74,7 @@ export default factories.createCoreController('api::module.module', ({ strapi })
 
     const updated = await strapi.documents('api::module.module').update({
       documentId: moduleDocumentId,
-      data: { courses: { connect: [courseDocumentId] } },
+      data: documentData({ courses: { connect: [courseDocumentId] } }),
     });
     return { data: updated };
   },
@@ -94,7 +98,7 @@ export default factories.createCoreController('api::module.module', ({ strapi })
 
     const updated = await strapi.documents('api::module.module').update({
       documentId: moduleDocumentId,
-      data: { courses: { disconnect: [courseDocumentId] } },
+      data: documentData({ courses: { disconnect: [courseDocumentId] } }),
     });
     return { data: updated };
   },
@@ -119,7 +123,7 @@ export default factories.createCoreController('api::module.module', ({ strapi })
 
     const updated = await strapi.documents('api::lesson.lesson').update({
       documentId: lessonDocumentId,
-      data: { modules: { connect: [moduleDocumentId] } },
+      data: documentData({ modules: { connect: [moduleDocumentId] } }),
     });
     return { data: updated };
   },
@@ -143,7 +147,7 @@ export default factories.createCoreController('api::module.module', ({ strapi })
 
     const updated = await strapi.documents('api::lesson.lesson').update({
       documentId: lessonDocumentId,
-      data: { modules: { disconnect: [moduleDocumentId] } },
+      data: documentData({ modules: { disconnect: [moduleDocumentId] } }),
     });
     return { data: updated };
   },
@@ -168,7 +172,7 @@ export default factories.createCoreController('api::module.module', ({ strapi })
 
     const updated = await strapi.documents('api::quiz.quiz').update({
       documentId: quizDocumentId,
-      data: { modules: { connect: [moduleDocumentId] } },
+      data: documentData({ modules: { connect: [moduleDocumentId] } }),
     });
     return { data: updated };
   },
@@ -213,7 +217,7 @@ export default factories.createCoreController('api::module.module', ({ strapi })
 
     const updated = await strapi.documents('api::quiz.quiz').update({
       documentId: quizDocumentId,
-      data: { modules: { disconnect: [moduleDocumentId] } },
+      data: documentData({ modules: { disconnect: [moduleDocumentId] } }),
     });
     return { data: updated, meta: { removed: 'detached' } };
   },

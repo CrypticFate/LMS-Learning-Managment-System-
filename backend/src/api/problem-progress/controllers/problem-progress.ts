@@ -103,7 +103,7 @@ export default factories.createCoreController('api::problem-progress.problem-pro
       if (existing.completedAt) return { data: existing };
       const updated = await strapi.documents('api::problem-progress.problem-progress').update({
         documentId: existing.documentId,
-        data: { completedAt: now },
+        data: ({ completedAt: now } as any),
       });
       return { data: updated };
     }
