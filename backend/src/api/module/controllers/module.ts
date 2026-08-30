@@ -179,22 +179,43 @@ export default factories.createCoreController('api::module.module', ({ strapi })
       findModuleWithCourses(strapi, moduleDocumentId),
       strapi.documents('api::quiz.quiz').findOne({
         documentId: quizDocumentId,
-        populate: { modules: { fields: ['documentId'] } },
+        populate: { modules: { populate: { courses: { populate: { owner: true } } } } },
       }),
     ]);
     if (!module || !quiz) return ctx.notFound('Module or quiz not found');
-    if (!canManageAllCourses(ctx.state.user, module.courses ?? [])) {
-      return ctx.forbidden('You cannot change this module');
+    if (!(quiz.modules ?? []).some((item: any) => item.documentId === moduleDocumentId)) {
+      return ctx.notFound('Quiz is not assigned to this module');
     }
+
+    const quizCourses = relatedCourses(quiz);
+    if (
+      !canManageAllCourses(ctx.state.user, module.courses ?? []) ||
+      (quizCourses.length > 0 && !canManageAllCourses(ctx.state.user, quizCourses))
+    ) {
+      return ctx.forbidden('You cannot remove this quiz from that module');
+    }
+
     if ((quiz.modules ?? []).length <= 1) {
-      return ctx.badRequest('A quiz must remain assigned to at least one module');
+      const attempts = await strapi.documents('api::quiz-attempt.quiz-attempt').findMany({
+        filters: { quiz: { documentId: { $eq: quizDocumentId } } },
+        limit: 10000,
+      });
+      await Promise.all(attempts.map((attempt: any) => (
+        strapi.documents('api::quiz-attempt.quiz-attempt').delete({
+          documentId: attempt.documentId,
+        })
+      )));
+      const deleted = await strapi.documents('api::quiz.quiz').delete({
+        documentId: quizDocumentId,
+      });
+      return { data: deleted, meta: { removed: 'deleted' } };
     }
 
     const updated = await strapi.documents('api::quiz.quiz').update({
       documentId: quizDocumentId,
       data: { modules: { disconnect: [moduleDocumentId] } },
     });
-    return { data: updated };
+    return { data: updated, meta: { removed: 'detached' } };
   },
 
   async courseModules(ctx) {

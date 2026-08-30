@@ -64,6 +64,7 @@ const SHARED_AUTHENTICATED_ACTIONS = [
   'api::quiz.quiz.update',
   'api::quiz.quiz.delete',
   'api::quiz.quiz.moduleQuizzes',
+  'api::quiz.quiz.courseQuizzes',
   'api::quiz.quiz.take',
   'api::quiz.quiz.submit',
   'api::quiz.quiz.attempts',

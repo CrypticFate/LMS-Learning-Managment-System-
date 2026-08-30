@@ -8,6 +8,12 @@ export default {
     },
     {
       method: 'GET',
+      path: '/courses/:courseDocumentId/quizzes',
+      handler: 'quiz.courseQuizzes',
+      config: { policies: ['global::is-enrolled'] },
+    },
+    {
+      method: 'GET',
       path: '/quizzes/:documentId/take',
       handler: 'quiz.take',
       config: { policies: ['global::is-enrolled'] },

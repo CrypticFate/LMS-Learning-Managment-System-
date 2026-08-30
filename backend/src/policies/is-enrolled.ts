@@ -5,8 +5,31 @@ export default async (policyContext: any, _config: unknown, { strapi }: any) => 
   const user = policyContext.state.user;
   if (user?.role?.name !== ROLE.STUDENT) return false;
 
+  // Quiz routes must validate the requested course against the quiz before trusting it.
+  const quizDocumentId = policyContext.request.path?.startsWith('/api/quizzes/')
+    ? policyContext.params?.documentId
+    : undefined;
+  if (quizDocumentId) {
+    const requestedCourseDocumentId =
+      relationDocumentId(policyContext.request.body?.data?.course) ??
+      relationDocumentId(policyContext.request.query?.course);
+    const quiz = await strapi.documents('api::quiz.quiz').findOne({
+      documentId: quizDocumentId,
+      populate: { modules: { populate: { courses: { fields: ['documentId'] } } } },
+    });
+    const courses = (quiz?.modules ?? []).flatMap((m: any) => m.courses ?? []);
+    if (requestedCourseDocumentId) {
+      return courses.some((course: any) => course.documentId === requestedCourseDocumentId) &&
+        hasEnrollment(strapi, user.id, requestedCourseDocumentId);
+    }
+    for (const course of courses) {
+      if (await hasEnrollment(strapi, user.id, course.documentId)) return true;
+    }
+    return false;
+  }
+
   // Direct course enrollment check (e.g. for /courses/:courseDocumentId/modules)
-  let courseDocumentId =
+  const courseDocumentId =
     policyContext.params?.courseDocumentId ??
     relationDocumentId(policyContext.request.body?.data?.course) ??
     relationDocumentId(policyContext.request.query?.course);
@@ -39,22 +62,6 @@ export default async (policyContext: any, _config: unknown, { strapi }: any) => 
       populate: { modules: { populate: { courses: { fields: ['documentId'] } } } },
     });
     const courses = (lesson?.modules ?? []).flatMap((m: any) => m.courses ?? []);
-    for (const course of courses) {
-      if (await hasEnrollment(strapi, user.id, course.documentId)) return true;
-    }
-    return false;
-  }
-
-  // Quiz-based route: find modules → courses
-  const quizDocumentId = policyContext.request.path?.startsWith('/api/quizzes/')
-    ? policyContext.params?.documentId
-    : undefined;
-  if (quizDocumentId) {
-    const quiz = await strapi.documents('api::quiz.quiz').findOne({
-      documentId: quizDocumentId,
-      populate: { modules: { populate: { courses: { fields: ['documentId'] } } } },
-    });
-    const courses = (quiz?.modules ?? []).flatMap((m: any) => m.courses ?? []);
     for (const course of courses) {
       if (await hasEnrollment(strapi, user.id, course.documentId)) return true;
     }

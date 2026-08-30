@@ -3,6 +3,11 @@
 import { useState } from 'react';
 import { useFormStatus } from 'react-dom';
 
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+
 import type { QuizQuestion } from '../types';
 
 type EditorQuestion = QuizQuestion;
@@ -24,7 +29,7 @@ function blankQuestion(): EditorQuestion {
 
 function SubmitButton({ label }: { label: string }) {
   const { pending } = useFormStatus();
-  return <button disabled={pending} type="submit">{pending ? 'Saving…' : label}</button>;
+  return <Button disabled={pending} type="submit">{pending ? 'Saving...' : label}</Button>;
 }
 
 export function QuizEditor({
@@ -66,19 +71,19 @@ export function QuizEditor({
 
   return (
     <form action={action} className="quiz-editor">
-      <label className="quiz-title-field">
+      <Label className="quiz-title-field">
         Quiz title
-        <input defaultValue={initialTitle} name="title" required />
-      </label>
+        <Input defaultValue={initialTitle} name="title" required />
+      </Label>
       <input name="questions" type="hidden" value={JSON.stringify(serialized)} />
 
       <div className="quiz-question-list">
         {questions.map((question, questionIndex) => (
           <fieldset className="quiz-question-editor" key={questionIndex}>
             <legend>Question {questionIndex + 1}</legend>
-            <label>
+            <Label>
               Question text
-              <textarea
+              <Textarea
                 onChange={(event) => updateQuestion(questionIndex, (current) => ({
                   ...current,
                   questionText: event.target.value,
@@ -87,7 +92,7 @@ export function QuizEditor({
                 rows={2}
                 value={question.questionText}
               />
-            </label>
+            </Label>
             <div className="quiz-options-editor">
               <span>Options (select the correct answer)</span>
               {question.options.map((option, optionIndex) => (
@@ -102,7 +107,7 @@ export function QuizEditor({
                     }))}
                     type="radio"
                   />
-                  <input
+                  <Input
                     aria-label={`Option ${optionIndex + 1}`}
                     onChange={(event) => updateQuestion(questionIndex, (current) => ({
                       ...current,
@@ -114,18 +119,21 @@ export function QuizEditor({
                     required
                     value={option}
                   />
-                  <button
-                    className="small-button danger-button"
+                  <Button
+                    className="danger-button"
+                    size="sm"
+                    variant="outline"
                     disabled={question.options.length <= 2}
                     onClick={() => removeOption(questionIndex, optionIndex)}
                     type="button"
                   >
                     Remove
-                  </button>
+                  </Button>
                 </div>
               ))}
-              <button
-                className="small-button secondary-button"
+              <Button
+                size="sm"
+                variant="outline"
                 disabled={question.options.length >= 6}
                 onClick={() => updateQuestion(questionIndex, (current) => ({
                   ...current,
@@ -134,24 +142,26 @@ export function QuizEditor({
                 type="button"
               >
                 Add option
-              </button>
+              </Button>
             </div>
-            <button
-              className="small-button danger-button"
+            <Button
+              className="danger-button justify-self-start"
+              size="sm"
+              variant="outline"
               disabled={questions.length === 1}
               onClick={() => setQuestions((current) => current.filter((_, index) => index !== questionIndex))}
               type="button"
             >
               Remove question
-            </button>
+            </Button>
           </fieldset>
         ))}
       </div>
 
       <div className="button-row">
-        <button className="secondary-button" onClick={() => setQuestions((current) => [...current, blankQuestion()])} type="button">
+        <Button variant="outline" onClick={() => setQuestions((current) => [...current, blankQuestion()])} type="button">
           Add question
-        </button>
+        </Button>
         <SubmitButton label={submitLabel} />
       </div>
     </form>

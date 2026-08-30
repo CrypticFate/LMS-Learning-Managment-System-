@@ -1,3 +1,9 @@
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Select } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import {
   attachQuizToModuleAction,
   detachQuizFromModuleAction,
@@ -44,92 +50,99 @@ export async function QuizManagement({
   }));
 
   return (
-    <details className="quiz-management">
+    <details className="quiz-management admin-disclosure">
       <summary>Quizzes ({quizzes.length})</summary>
-      <div className="stack quiz-management-content">
+      <div className="admin-stack quiz-management-content">
         {quizzes.length === 0 && <p className="muted">No quizzes in this module yet.</p>}
+
         {quizzes.map(({ quiz, attempts }) => (
-          <article className="quiz-admin-card" key={quiz.documentId}>
-            <div className="section-heading">
+          <Card className="quiz-admin-card" key={quiz.documentId}>
+            <CardHeader className="admin-card-header">
               <div>
-                <h3>{quiz.title}</h3>
-                <p className="muted">{quiz.questions.length} questions - {attempts.length} attempts</p>
+                <Badge variant="secondary">{quiz.questions.length} questions</Badge>
+                <CardTitle className="mt-3">{quiz.title}</CardTitle>
+                <CardDescription>{attempts.length} submitted attempts</CardDescription>
               </div>
-              <div className="button-row">
-                {(quiz.modules?.length ?? 0) > 1 && (
-                  <form action={detachQuizFromModuleAction.bind(
-                    null,
-                    moduleDocumentId,
-                    quiz.documentId,
-                    returnPath,
-                  )}>
-                    <button className="secondary small-button" type="submit">Remove from module</button>
-                  </form>
-                )}
-                <form action={deleteQuizAction.bind(null, quiz.documentId, returnPath)}>
-                  <button className="danger-button small-button" type="submit">Delete everywhere</button>
-                </form>
-              </div>
-            </div>
-            <details>
-              <summary>Edit questions</summary>
-              <QuizEditor
-                action={updateQuizAction.bind(
+              <div className="admin-row-actions">
+                <form action={detachQuizFromModuleAction.bind(
                   null,
+                  moduleDocumentId,
                   quiz.documentId,
                   returnPath,
+                )}>
+                  <Button variant="outline" size="sm" type="submit">Remove quiz</Button>
+                </form>
+                <form action={deleteQuizAction.bind(null, quiz.documentId, returnPath)}>
+                  <Button className="danger-button" variant="outline" size="sm" type="submit">Delete everywhere</Button>
+                </form>
+              </div>
+            </CardHeader>
+            <CardContent className="admin-stack">
+              <details className="admin-disclosure subtle">
+                <summary>Edit questions</summary>
+                <QuizEditor
+                  action={updateQuizAction.bind(
+                    null,
+                    quiz.documentId,
+                    returnPath,
+                  )}
+                  initialQuestions={quiz.questions}
+                  initialTitle={quiz.title}
+                  submitLabel="Save quiz"
+                />
+              </details>
+
+              <details className="admin-disclosure subtle">
+                <summary>Results ({attempts.length})</summary>
+                {attempts.length === 0 ? (
+                  <p className="muted">No attempts submitted yet.</p>
+                ) : (
+                  <div className="admin-table-wrap">
+                    <Table>
+                      <TableHeader>
+                        <TableRow><TableHead>Student</TableHead><TableHead>Score</TableHead><TableHead>Submitted</TableHead></TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {attempts.map((attempt) => (
+                          <TableRow key={attempt.documentId}>
+                            <TableCell><strong>{attempt.student?.username ?? 'Unknown student'}</strong></TableCell>
+                            <TableCell>
+                              <Badge variant={attempt.percent >= 70 ? 'default' : 'outline'}>
+                                {attempt.score} / {attempt.total} ({attempt.percent}%)
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-[var(--muted)]">{submittedAt(attempt.submittedAt)}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
                 )}
-                initialQuestions={quiz.questions}
-                initialTitle={quiz.title}
-                submitLabel="Save quiz"
-              />
-            </details>
-            <details>
-              <summary>Results ({attempts.length})</summary>
-              {attempts.length === 0 ? (
-                <p className="muted">No attempts submitted yet.</p>
-              ) : (
-                <div className="progress-table-wrap">
-                  <table className="progress-table">
-                    <thead>
-                      <tr><th>Student</th><th>Score</th><th>Submitted</th></tr>
-                    </thead>
-                    <tbody>
-                      {attempts.map((attempt) => (
-                        <tr key={attempt.documentId}>
-                          <td><strong>{attempt.student?.username ?? 'Unknown student'}</strong></td>
-                          <td>{attempt.score} / {attempt.total} ({attempt.percent}%)</td>
-                          <td>{submittedAt(attempt.submittedAt)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </details>
-          </article>
+              </details>
+            </CardContent>
+          </Card>
         ))}
 
         {availableQuizzes.length > 0 && (
-          <details>
+          <details className="admin-disclosure subtle">
             <summary>Attach existing quiz</summary>
             <form
               action={attachQuizToModuleAction.bind(null, moduleDocumentId, returnPath)}
-              className="content-form compact-form"
+              className="admin-form-grid"
             >
-              <label>Quiz
-                <select name="quizDocumentId" required>
+              <Label>Quiz
+                <Select name="quizDocumentId" required>
                   {availableQuizzes.map((quiz) => (
                     <option key={quiz.documentId} value={quiz.documentId}>{quiz.title}</option>
                   ))}
-                </select>
-              </label>
-              <button type="submit">Attach quiz</button>
+                </Select>
+              </Label>
+              <Button className="self-end justify-self-start" type="submit">Attach quiz</Button>
             </form>
           </details>
         )}
 
-        <details className="quiz-create-panel">
+        <details className="quiz-create-panel admin-disclosure subtle">
           <summary>Add quiz</summary>
           <QuizEditor
             action={createQuizAction.bind(null, moduleDocumentId, returnPath)}

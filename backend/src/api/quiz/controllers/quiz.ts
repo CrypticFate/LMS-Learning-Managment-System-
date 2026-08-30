@@ -1,6 +1,6 @@
 import { factories } from '@strapi/strapi';
 
-import { isRelatedToCourse, relationDocumentId } from '../../../policies/course-access';
+import { isRelatedToCourse, relatedCourses, relationDocumentId } from '../../../policies/course-access';
 
 type QuizQuestionInput = {
   questionText: string;
@@ -50,23 +50,56 @@ function parseQuizInput(data: any): QuizInput | string {
   return { title, questions };
 }
 
+function withPrimaryCourse(quiz: any) {
+  const courses = relatedCourses(quiz);
+  return { ...quiz, course: courses[0] ?? null };
+}
+
 export default factories.createCoreController('api::quiz.quiz', ({ strapi }) => ({
   async create(ctx) {
-    const moduleDocumentId = relationDocumentId(ctx.request.body?.data?.module);
-    if (!moduleDocumentId) return ctx.badRequest('module is required');
+    let moduleDocumentId = relationDocumentId(ctx.request.body?.data?.module);
+    const courseDocumentId = relationDocumentId(ctx.request.body?.data?.course);
+    if (!moduleDocumentId && !courseDocumentId) {
+      return ctx.badRequest('module or course is required');
+    }
 
     const input = parseQuizInput(ctx.request.body?.data);
     if (typeof input === 'string') return ctx.badRequest(input);
 
+    if (!moduleDocumentId && courseDocumentId) {
+      const course = await strapi.documents('api::course.course').findOne({
+        documentId: courseDocumentId,
+      });
+      if (!course) return ctx.notFound('Course not found');
+
+      const existingModules = await strapi.documents('api::module.module').findMany({
+        filters: { courses: { documentId: { $eq: courseDocumentId } } },
+        sort: ['order:asc', 'createdAt:asc'],
+        limit: 1,
+      });
+      const targetModule = existingModules[0] ?? await strapi.documents('api::module.module').create({
+        data: {
+          title: 'Quizzes',
+          description: 'Auto-created module for course quizzes.',
+          order: 0,
+          courses: { connect: [courseDocumentId] },
+        },
+      });
+      moduleDocumentId = targetModule.documentId;
+    }
+
+    if (!moduleDocumentId) return ctx.badRequest('module or course is required');
+    const resolvedModuleDocumentId = moduleDocumentId;
+
     const module = await strapi.documents('api::module.module').findOne({
-      documentId: moduleDocumentId,
+      documentId: resolvedModuleDocumentId,
     });
     if (!module) return ctx.notFound('Module not found');
 
     const created = await strapi.documents('api::quiz.quiz').create({
       data: {
         ...input,
-        modules: { connect: [moduleDocumentId] },
+        modules: { connect: [resolvedModuleDocumentId] },
       },
       populate: { questions: true },
     });
@@ -85,7 +118,7 @@ export default factories.createCoreController('api::quiz.quiz', ({ strapi }) => 
       },
     });
     if (!quiz) return ctx.notFound('Quiz not found');
-    return { data: quiz };
+    return { data: withPrimaryCourse(quiz) };
   },
 
   async update(ctx) {
@@ -133,9 +166,26 @@ export default factories.createCoreController('api::quiz.quiz', ({ strapi }) => 
     };
   },
 
+
+  async courseQuizzes(ctx) {
+    const courseDocumentId = ctx.params.courseDocumentId;
+    const quizzes = await strapi.documents('api::quiz.quiz').findMany({
+      filters: { modules: { courses: { documentId: { $eq: courseDocumentId } } } },
+      populate: { questions: true },
+      sort: ['createdAt:asc'],
+      limit: 10000,
+    });
+    return {
+      data: quizzes.map((quiz: any) => ({
+        documentId: quiz.documentId,
+        title: quiz.title,
+        questionCount: quiz.questions?.length ?? 0,
+      })),
+    };
+  },
+
   async take(ctx) {
-    const courseDocumentId = relationDocumentId(ctx.request.query?.course);
-    if (!courseDocumentId) return ctx.badRequest('course is required');
+    let courseDocumentId = relationDocumentId(ctx.request.query?.course);
 
     const quiz = await strapi.documents('api::quiz.quiz').findOne({
       documentId: ctx.params.documentId,
@@ -145,13 +195,20 @@ export default factories.createCoreController('api::quiz.quiz', ({ strapi }) => 
       },
     });
     if (!quiz) return ctx.notFound('Quiz not found');
-    if (!isRelatedToCourse(quiz, courseDocumentId)) return ctx.notFound('Quiz not found');
 
+    if (!courseDocumentId) {
+      const courses = relatedCourses(quiz);
+      if (courses.length !== 1) return ctx.badRequest('course is required');
+      courseDocumentId = courses[0].documentId;
+    }
+    if (!courseDocumentId) return ctx.badRequest('course is required');
+    const resolvedCourseDocumentId = courseDocumentId;
+    if (!isRelatedToCourse(quiz, resolvedCourseDocumentId)) return ctx.notFound('Quiz not found');
 
     return {
       data: {
         documentId: quiz.documentId,
-        courseDocumentId,
+        courseDocumentId: resolvedCourseDocumentId,
         title: quiz.title,
         questions: ((quiz.questions ?? []) as any[]).map((question, index) => ({
           index,
@@ -163,8 +220,7 @@ export default factories.createCoreController('api::quiz.quiz', ({ strapi }) => 
   },
 
   async submit(ctx) {
-    const courseDocumentId = relationDocumentId(ctx.request.body?.data?.course);
-    if (!courseDocumentId) return ctx.badRequest('course is required');
+    let courseDocumentId = relationDocumentId(ctx.request.body?.data?.course);
 
     const answers = ctx.request.body?.data?.answers;
     if (!Array.isArray(answers)) return ctx.badRequest('answers must be an array');
@@ -177,7 +233,15 @@ export default factories.createCoreController('api::quiz.quiz', ({ strapi }) => 
       },
     });
     if (!quiz) return ctx.notFound('Quiz not found');
-    if (!isRelatedToCourse(quiz, courseDocumentId)) return ctx.notFound('Quiz not found');
+
+    if (!courseDocumentId) {
+      const courses = relatedCourses(quiz);
+      if (courses.length !== 1) return ctx.badRequest('course is required');
+      courseDocumentId = courses[0].documentId;
+    }
+    if (!courseDocumentId) return ctx.badRequest('course is required');
+    const resolvedCourseDocumentId = courseDocumentId;
+    if (!isRelatedToCourse(quiz, resolvedCourseDocumentId)) return ctx.notFound('Quiz not found');
 
     const questions = (quiz.questions ?? []) as any[];
     if (questions.length === 0) return ctx.badRequest('Quiz has no questions');
@@ -206,7 +270,7 @@ export default factories.createCoreController('api::quiz.quiz', ({ strapi }) => 
       data: {
         student: ctx.state.user.id,
         quiz: quiz.documentId,
-        course: courseDocumentId,
+        course: resolvedCourseDocumentId,
         answers: normalizedAnswers,
         score,
         total,
