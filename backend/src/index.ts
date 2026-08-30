@@ -2,7 +2,7 @@ import type { Core } from '@strapi/strapi';
 
 import { ROLE, type RoleName } from './constants/roles';
 import { seedDemoContent } from './seed/demo-content';
-
+import { migrateCourseContentRelations } from './seed/migrate-course-content';
 type UsersPermissionsRole = {
   id: number;
   name: string;
@@ -35,13 +35,26 @@ const SHARED_AUTHENTICATED_ACTIONS = [
   'api::course.course.update',
   'api::course.course.delete',
   'api::course.course.mine',
+  'api::module.module.create',
+  'api::module.module.update',
+  'api::module.module.delete',
+  'api::module.module.courseModules',
   'api::lesson.lesson.create',
   'api::lesson.lesson.update',
   'api::lesson.lesson.delete',
-  'api::lesson.lesson.courseLessons',
+  'api::lesson.lesson.moduleLessons',
+  'api::comment.comment.create',
+  'api::comment.comment.delete',
+  'api::comment.comment.lessonComments',
   'api::enrollment.enrollment.create',
   'api::enrollment.enrollment.me',
   'api::progress.progress.complete',
+  'api::module.module.attachCourse',
+  'api::module.module.detachCourse',
+  'api::module.module.attachLesson',
+  'api::module.module.detachLesson',
+  'api::module.module.attachQuiz',
+  'api::module.module.detachQuiz',
   'api::progress.progress.uncomplete',
   'api::progress.progress.courseProgress',
   'api::progress.progress.me',
@@ -50,7 +63,7 @@ const SHARED_AUTHENTICATED_ACTIONS = [
   'api::quiz.quiz.findOne',
   'api::quiz.quiz.update',
   'api::quiz.quiz.delete',
-  'api::quiz.quiz.courseQuizzes',
+  'api::quiz.quiz.moduleQuizzes',
   'api::quiz.quiz.take',
   'api::quiz.quiz.submit',
   'api::quiz.quiz.attempts',
@@ -140,6 +153,8 @@ export default {
         provider: 'local',
       });
     }
+
+    await migrateCourseContentRelations(strapi);
 
     await seedDemoContent(strapi);
 

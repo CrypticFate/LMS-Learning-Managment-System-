@@ -4,6 +4,18 @@ export type CourseOwner = {
   username: string;
 };
 
+export type Comment = {
+  id: number;
+  documentId: string;
+  body: string;
+  author?: {
+    id: number;
+    documentId?: string;
+    username: string;
+  } | null;
+  createdAt: string;
+};
+
 export type Lesson = {
   id: number;
   documentId: string;
@@ -11,8 +23,29 @@ export type Lesson = {
   content?: string | null;
   videoUrl?: string | null;
   order: number;
+  comments?: Comment[];
+  modules?: Array<{
+    documentId: string;
+    title: string;
+  }>;
   createdAt: string;
   updatedAt: string;
+};
+
+export type Module = {
+  id: number;
+  documentId: string;
+  title: string;
+  description?: string | null;
+  order: number;
+  lessons?: Lesson[];
+  quizzes?: { documentId: string; title: string }[];
+  createdAt?: string;
+  courses?: Array<{
+    documentId: string;
+    title: string;
+  }>;
+  updatedAt?: string;
 };
 
 export type Course = {
@@ -23,7 +56,7 @@ export type Course = {
   description?: string | null;
   coverImageUrl?: string | null;
   owner?: CourseOwner | null;
-  lessons?: Lesson[];
+  modules?: Module[];
   createdAt: string;
   updatedAt: string;
 };

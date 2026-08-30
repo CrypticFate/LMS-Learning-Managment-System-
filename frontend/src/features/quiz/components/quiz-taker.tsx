@@ -20,7 +20,7 @@ function SubmitButton() {
 
 export function QuizTaker({ quiz }: { quiz: StudentQuiz }) {
   const [state, action] = useActionState(
-    submitQuizAction.bind(null, quiz.documentId),
+    submitQuizAction.bind(null, quiz.documentId, quiz.courseDocumentId),
     INITIAL_STATE,
   );
 

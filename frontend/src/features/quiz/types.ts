@@ -10,10 +10,10 @@ export type Quiz = {
   documentId: string;
   title: string;
   questions: QuizQuestion[];
-  course?: {
+  modules?: Array<{
     documentId: string;
     title?: string;
-  } | null;
+  }>;
 };
 
 export type QuizSummary = {

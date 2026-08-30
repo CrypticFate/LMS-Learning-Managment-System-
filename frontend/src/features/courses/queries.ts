@@ -2,7 +2,7 @@ import 'server-only';
 
 import { strapiFetch } from '@/lib/strapi';
 import type { StrapiListResponse, StrapiSingleResponse } from '@/types/strapi';
-import type { Course, Enrollment, Lesson } from './types';
+import type { Comment, Course, Enrollment, Lesson, Module } from './types';
 
 export async function getCourses(): Promise<Course[]> {
   const response = await strapiFetch<StrapiListResponse<Course>>(
@@ -25,9 +25,25 @@ export async function getManageableCourses(): Promise<Course[]> {
   return response.data;
 }
 
-export async function getCourseLessons(documentId: string): Promise<Lesson[]> {
+export async function getCourseModules(courseDocumentId: string): Promise<Module[]> {
+  const response = await strapiFetch<{ data: Module[] }>(
+    `/api/courses/${encodeURIComponent(courseDocumentId)}/modules`,
+    { auth: true },
+  );
+  return response.data;
+}
+
+export async function getModuleLessons(moduleDocumentId: string): Promise<Lesson[]> {
   const response = await strapiFetch<{ data: Lesson[] }>(
-    `/api/courses/${encodeURIComponent(documentId)}/lessons`,
+    `/api/modules/${encodeURIComponent(moduleDocumentId)}/lessons`,
+    { auth: true },
+  );
+  return response.data;
+}
+
+export async function getLessonComments(lessonDocumentId: string): Promise<Comment[]> {
+  const response = await strapiFetch<{ data: Comment[] }>(
+    `/api/lessons/${encodeURIComponent(lessonDocumentId)}/comments`,
     { auth: true },
   );
   return response.data;

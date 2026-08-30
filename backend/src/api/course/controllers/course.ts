@@ -38,6 +38,10 @@ export default factories.createCoreController('api::course.course', ({ strapi })
       sort: ['createdAt:desc'],
       populate: {
         owner: { fields: ['id', 'documentId', 'username'] },
+        modules: {
+          fields: ['documentId', 'title', 'order'],
+          sort: ['order:asc', 'createdAt:asc'],
+        },
       },
     });
     return { data: courses };

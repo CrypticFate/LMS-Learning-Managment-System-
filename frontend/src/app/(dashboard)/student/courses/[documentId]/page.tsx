@@ -1,13 +1,19 @@
 import Link from 'next/link';
 
 import { renderForRoles } from '@/features/auth/components/role-guard';
-import { getCourse, getCourseLessons } from '@/features/courses/queries';
+import {
+  createCommentAction,
+  deleteCommentAction,
+} from '@/features/courses/actions';
+import { getCurrentUser } from '@/features/auth/session';
+import { getCourse, getCourseModules, getLessonComments, getModuleLessons } from '@/features/courses/queries';
+import type { Comment, Lesson, Module } from '@/features/courses/types';
 import {
   markLessonCompleteAction,
   unmarkLessonCompleteAction,
 } from '@/features/progress/actions';
 import { getCourseProgress } from '@/features/progress/queries';
-import { getCourseQuizSummaries } from '@/features/quiz/queries';
+import { getModuleQuizSummaries } from '@/features/quiz/queries';
 import { ROLE } from '@/lib/constants';
 
 type LessonViewerProps = {
@@ -49,22 +55,61 @@ function embeddableUrl(value?: string | null): string | null {
   }
 }
 
+type ModuleWithLessonsAndQuizzes = Module & {
+  detailedLessons: Lesson[];
+  quizSummaries: { documentId: string; title: string; questionCount: number }[];
+};
+
+function formatCommentDate(value: string): string {
+  return new Intl.DateTimeFormat('en', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(new Date(value));
+}
+
 async function renderLessonViewer({ params, searchParams }: LessonViewerProps) {
   const { documentId } = await params;
   const query = await searchParams;
-  const [course, lessons, progress, quizzes] = await Promise.all([
+  const [course, modules, progress, currentUser] = await Promise.all([
     getCourse(documentId),
-    getCourseLessons(documentId),
+    getCourseModules(documentId),
     getCourseProgress(documentId),
-    getCourseQuizSummaries(documentId),
+    getCurrentUser(),
   ]);
+
+  // Fetch lessons for each module + quiz summaries
+  const modulesWithDetails: ModuleWithLessonsAndQuizzes[] = await Promise.all(
+    modules.map(async (mod) => {
+      const [detailedLessons, quizSummaries] = await Promise.all([
+        getModuleLessons(mod.documentId),
+        getModuleQuizSummaries(mod.documentId),
+      ]);
+      return { ...mod, detailedLessons, quizSummaries };
+    }),
+  );
+
+  // Flatten all lessons in module order for sequential navigation
+  const allLessons: { lesson: Lesson; moduleTitle: string }[] = [];
+  for (const mod of modulesWithDetails) {
+    for (const lesson of mod.detailedLessons) {
+      allLessons.push({ lesson, moduleTitle: mod.title });
+    }
+  }
+
   const completedLessons = new Set(progress.completedLessonDocumentIds);
   const requested = Number.parseInt(query.lesson ?? '0', 10);
   const selectedIndex = Number.isInteger(requested)
-    ? Math.min(Math.max(requested, 0), Math.max(lessons.length - 1, 0))
+    ? Math.min(Math.max(requested, 0), Math.max(allLessons.length - 1, 0))
     : 0;
-  const selected = lessons[selectedIndex];
+  const selectedEntry = allLessons[selectedIndex];
+  const selected = selectedEntry?.lesson;
   const videoUrl = embeddableUrl(selected?.videoUrl);
+
+  // Fetch comments for the selected lesson
+  let comments: Comment[] = [];
+  if (selected) {
+    comments = await getLessonComments(selected.documentId);
+  }
 
   return (
     <>
@@ -78,40 +123,53 @@ async function renderLessonViewer({ params, searchParams }: LessonViewerProps) {
         <progress max={100} value={progress.percent}>{progress.percent}%</progress>
       </section>
       <div className="lesson-viewer section-gap">
-        <aside className="lesson-list" aria-label="Lessons in course order">
-          <h2>Lessons</h2>
-          {lessons.map((lesson, index) => (
-            <Link
-              className={index === selectedIndex ? 'active' : ''}
-              href={`/student/courses/${documentId}?lesson=${index}`}
-              key={lesson.documentId}
-            >
-              <span className="lesson-number">
-                {completedLessons.has(lesson.documentId) ? '✓' : lesson.order}
-              </span>{lesson.title}
-            </Link>
-          ))}
-          {quizzes.length > 0 && (
-            <div className="course-quiz-links">
-              <h3>Quizzes</h3>
-              {quizzes.map((quiz) => (
-                <Link
-                  href={`/student/courses/${documentId}/quiz/${quiz.documentId}`}
-                  key={quiz.documentId}
-                >
-                  <span className="lesson-number">?</span>
-                  <span>{quiz.title}<small>{quiz.questionCount} questions</small></span>
-                </Link>
-              ))}
-            </div>
-          )}
+        <aside className="lesson-list" aria-label="Lessons grouped by module">
+          <h2>Modules</h2>
+          {modulesWithDetails.map((mod) => {
+            const moduleStartIndex = allLessons.findIndex(
+              (entry) => mod.detailedLessons[0]?.documentId === entry.lesson.documentId,
+            );
+            return (
+              <div className="module-group" key={mod.documentId}>
+                <h3 className="module-group-title">{mod.title}</h3>
+                {mod.detailedLessons.map((lesson, lessonIdx) => {
+                  const flatIndex = moduleStartIndex + lessonIdx;
+                  return (
+                    <Link
+                      className={flatIndex === selectedIndex ? 'active' : ''}
+                      href={`/student/courses/${documentId}?lesson=${flatIndex}`}
+                      key={lesson.documentId}
+                    >
+                      <span className="lesson-number">
+                        {completedLessons.has(lesson.documentId) ? '✓' : lesson.order}
+                      </span>{lesson.title}
+                    </Link>
+                  );
+                })}
+                {mod.quizSummaries.length > 0 && (
+                  <div className="course-quiz-links">
+                    <h4>Quizzes</h4>
+                    {mod.quizSummaries.map((quiz) => (
+                      <Link
+                        href={`/student/courses/${documentId}/quiz/${quiz.documentId}`}
+                        key={quiz.documentId}
+                      >
+                        <span className="lesson-number">?</span>
+                        <span>{quiz.title}<small>{quiz.questionCount} questions</small></span>
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </aside>
         <article className="lesson-pane">
           {!selected ? (
             <p className="empty-state">This course has no lessons yet.</p>
           ) : (
             <>
-              <p className="eyebrow">Lesson {selectedIndex + 1} of {lessons.length}</p>
+              <p className="eyebrow">{selectedEntry.moduleTitle} · Lesson {selectedIndex + 1} of {allLessons.length}</p>
               <h2>{selected.title}</h2>
               {videoUrl && (
                 <div className="video-frame">
@@ -145,10 +203,39 @@ async function renderLessonViewer({ params, searchParams }: LessonViewerProps) {
                 {selectedIndex > 0 && (
                   <Link className="button secondary" href={`/student/courses/${documentId}?lesson=${selectedIndex - 1}`}>Previous</Link>
                 )}
-                {selectedIndex < lessons.length - 1 && (
+                {selectedIndex < allLessons.length - 1 && (
                   <Link className="button primary" href={`/student/courses/${documentId}?lesson=${selectedIndex + 1}`}>Next lesson</Link>
                 )}
               </div>
+
+              {/* ── Comments ── */}
+              <section className="comments-section">
+                <h3>Comments ({comments.length})</h3>
+                <form action={createCommentAction.bind(null, selected.documentId, documentId)} className="comment-form">
+                  <textarea name="body" rows={3} placeholder="Write a comment..." required />
+                  <button type="submit">Post comment</button>
+                </form>
+                {comments.length === 0 ? (
+                  <p className="muted">No comments yet. Be the first!</p>
+                ) : (
+                  <div className="comment-list">
+                    {comments.map((comment) => (
+                      <div className="comment-card" key={comment.documentId}>
+                        <div className="comment-header">
+                          <strong>{comment.author?.username ?? 'Unknown'}</strong>
+                          <span>{formatCommentDate(comment.createdAt)}</span>
+                        </div>
+                        <p className="comment-body">{comment.body}</p>
+                        {comment.author?.id === currentUser?.id && (
+                          <form action={deleteCommentAction.bind(null, comment.documentId, documentId)}>
+                            <button className="danger-button small-button" type="submit">Delete</button>
+                          </form>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </section>
             </>
           )}
         </article>

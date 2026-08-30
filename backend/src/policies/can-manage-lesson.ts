@@ -1,4 +1,4 @@
-import { canManageLoadedCourse } from './course-access';
+import { canManageAllCourses, relatedCourses } from './course-access';
 
 export default async (policyContext: any, _config: unknown, { strapi }: any) => {
   const user = policyContext.state.user;
@@ -7,7 +7,9 @@ export default async (policyContext: any, _config: unknown, { strapi }: any) => 
 
   const lesson = await strapi.documents('api::lesson.lesson').findOne({
     documentId,
-    populate: { course: { populate: { owner: true } } },
+    populate: { modules: { populate: { courses: { populate: { owner: true } } } } },
   });
-  return canManageLoadedCourse(user, lesson?.course);
+  if (!lesson) return false;
+
+  return canManageAllCourses(user, relatedCourses(lesson));
 };

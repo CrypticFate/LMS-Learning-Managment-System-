@@ -1,9 +1,18 @@
 import type { Core } from '@strapi/strapi';
 
+import { MIGRATED_MODULE_TITLE } from './migrate-course-content';
+
 type SeedLesson = {
   title: string;
   content: string;
   order: number;
+};
+
+type SeedModule = {
+  title: string;
+  description: string;
+  order: number;
+  lessons: SeedLesson[];
 };
 
 type SeedCourse = {
@@ -11,7 +20,7 @@ type SeedCourse = {
   slug: string;
   description: string;
   ownerEmail: string;
-  lessons: SeedLesson[];
+  modules: SeedModule[];
 };
 
 const COURSES: SeedCourse[] = [
@@ -21,30 +30,44 @@ const COURSES: SeedCourse[] = [
     description:
       'Build a strong foundation in semantic HTML, modern CSS, and browser-based JavaScript.',
     ownerEmail: 'instructor@lms.test',
-    lessons: [
+    modules: [
       {
-        title: 'How the Web Works',
+        title: 'Web Basics',
+        description: 'Understand how the web works and build pages with HTML.',
+        order: 0,
+        lessons: [
+          {
+            title: 'How the Web Works',
+            order: 1,
+            content:
+              'Learn how browsers, web servers, URLs, HTTP requests, and responses work together to deliver a web page.',
+          },
+          {
+            title: 'Semantic HTML',
+            order: 2,
+            content:
+              'Use meaningful HTML elements to create accessible document structure, forms, navigation, and page content.',
+          },
+        ],
+      },
+      {
+        title: 'CSS & JavaScript',
+        description: 'Style pages and add interactivity with CSS and JS.',
         order: 1,
-        content:
-          'Learn how browsers, web servers, URLs, HTTP requests, and responses work together to deliver a web page.',
-      },
-      {
-        title: 'Semantic HTML',
-        order: 2,
-        content:
-          'Use meaningful HTML elements to create accessible document structure, forms, navigation, and page content.',
-      },
-      {
-        title: 'Responsive CSS Layouts',
-        order: 3,
-        content:
-          'Create adaptable layouts with the box model, Flexbox, Grid, fluid sizing, and focused media queries.',
-      },
-      {
-        title: 'JavaScript Essentials',
-        order: 4,
-        content:
-          'Work with values, functions, arrays, objects, DOM events, and small interactive browser features.',
+        lessons: [
+          {
+            title: 'Responsive CSS Layouts',
+            order: 1,
+            content:
+              'Create adaptable layouts with the box model, Flexbox, Grid, fluid sizing, and focused media queries.',
+          },
+          {
+            title: 'JavaScript Essentials',
+            order: 2,
+            content:
+              'Work with values, functions, arrays, objects, DOM events, and small interactive browser features.',
+          },
+        ],
       },
     ],
   },
@@ -54,24 +77,31 @@ const COURSES: SeedCourse[] = [
     description:
       'Use TypeScript to model application data, prevent common bugs, and build maintainable frontend code.',
     ownerEmail: 'instructor@lms.test',
-    lessons: [
+    modules: [
       {
-        title: 'TypeScript Mental Model',
-        order: 1,
-        content:
-          'Understand static checking, inference, annotations, compilation, and the boundary between types and runtime values.',
-      },
-      {
-        title: 'Objects, Unions, and Narrowing',
-        order: 2,
-        content:
-          'Model realistic data with object types and unions, then safely narrow values using control flow.',
-      },
-      {
-        title: 'Reusable Generic Functions',
-        order: 3,
-        content:
-          'Create generic helpers that preserve useful type information without weakening code with broad any types.',
+        title: 'TypeScript Fundamentals',
+        description: 'Core concepts of TypeScript type system.',
+        order: 0,
+        lessons: [
+          {
+            title: 'TypeScript Mental Model',
+            order: 1,
+            content:
+              'Understand static checking, inference, annotations, compilation, and the boundary between types and runtime values.',
+          },
+          {
+            title: 'Objects, Unions, and Narrowing',
+            order: 2,
+            content:
+              'Model realistic data with object types and unions, then safely narrow values using control flow.',
+          },
+          {
+            title: 'Reusable Generic Functions',
+            order: 3,
+            content:
+              'Create generic helpers that preserve useful type information without weakening code with broad any types.',
+          },
+        ],
       },
     ],
   },
@@ -81,24 +111,31 @@ const COURSES: SeedCourse[] = [
     description:
       'Plan useful learning content with clear goals, consistent structure, and an audience-first editorial workflow.',
     ownerEmail: 'manager@lms.test',
-    lessons: [
+    modules: [
       {
-        title: 'Audience and Learning Goals',
-        order: 1,
-        content:
-          'Define the audience, the problem they need to solve, and observable outcomes before producing content.',
-      },
-      {
-        title: 'Structuring a Course',
-        order: 2,
-        content:
-          'Turn a broad topic into a sequence of focused lessons that moves from prerequisite knowledge to application.',
-      },
-      {
-        title: 'Editorial Quality Checklist',
-        order: 3,
-        content:
-          'Review content for accuracy, clarity, accessibility, consistency, useful examples, and actionable next steps.',
+        title: 'Planning Content',
+        description: 'Define audience, goals, and course structure.',
+        order: 0,
+        lessons: [
+          {
+            title: 'Audience and Learning Goals',
+            order: 1,
+            content:
+              'Define the audience, the problem they need to solve, and observable outcomes before producing content.',
+          },
+          {
+            title: 'Structuring a Course',
+            order: 2,
+            content:
+              'Turn a broad topic into a sequence of focused lessons that moves from prerequisite knowledge to application.',
+          },
+          {
+            title: 'Editorial Quality Checklist',
+            order: 3,
+            content:
+              'Review content for accuracy, clarity, accessibility, consistency, useful examples, and actionable next steps.',
+          },
+        ],
       },
     ],
   },
@@ -140,22 +177,51 @@ export async function seedDemoContent(strapi: Core.Strapi): Promise<void> {
     });
     courseBySlug.set(seed.slug, course);
 
-    for (const lessonSeed of seed.lessons) {
-      const lessons = await strapi.documents('api::lesson.lesson').findMany({
+    const migratedModules = await strapi.documents('api::module.module').findMany({
+      filters: {
+        courses: { documentId: { $eq: course.documentId } },
+        title: { $eq: MIGRATED_MODULE_TITLE },
+      },
+      limit: 1,
+    });
+    // A migrated course already has its legacy lessons/quizzes attached.
+    if (migratedModules.length > 0) continue;
+
+    for (const moduleSeed of seed.modules) {
+      // Check if module already exists for this course
+      const existingModules = await strapi.documents('api::module.module').findMany({
         filters: {
-          course: { documentId: { $eq: course.documentId } },
-          title: { $eq: lessonSeed.title },
+          courses: { documentId: { $eq: course.documentId } },
+          title: { $eq: moduleSeed.title },
         },
         limit: 1,
       });
-      if (lessons.length > 0) continue;
-
-      await strapi.documents('api::lesson.lesson').create({
+      const module = existingModules[0] ?? await strapi.documents('api::module.module').create({
         data: {
-          ...lessonSeed,
-          course: course.documentId,
+          title: moduleSeed.title,
+          description: moduleSeed.description,
+          order: moduleSeed.order,
+          courses: { connect: [course.documentId] },
         },
       });
+
+      for (const lessonSeed of moduleSeed.lessons) {
+        const existingLessons = await strapi.documents('api::lesson.lesson').findMany({
+          filters: {
+            modules: { documentId: { $eq: module.documentId } },
+            title: { $eq: lessonSeed.title },
+          },
+          limit: 1,
+        });
+        if (existingLessons.length > 0) continue;
+
+        await strapi.documents('api::lesson.lesson').create({
+          data: {
+            ...lessonSeed,
+            modules: { connect: [module.documentId] },
+          },
+        });
+      }
     }
   }
 

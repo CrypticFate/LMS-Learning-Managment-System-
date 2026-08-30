@@ -1,16 +1,34 @@
 import { ROLE } from '../constants/roles';
-import { hasEnrollment, relationDocumentId } from './course-access';
+import { hasEnrollment, hasEnrollmentInAnyModuleCourse, relationDocumentId } from './course-access';
 
 export default async (policyContext: any, _config: unknown, { strapi }: any) => {
   const user = policyContext.state.user;
   if (user?.role?.name !== ROLE.STUDENT) return false;
 
+  // Direct course enrollment check (e.g. for /courses/:courseDocumentId/modules)
   let courseDocumentId =
     policyContext.params?.courseDocumentId ??
-    relationDocumentId(policyContext.request.body?.data?.course);
+    relationDocumentId(policyContext.request.body?.data?.course) ??
+    relationDocumentId(policyContext.request.query?.course);
 
-  // A lesson always determines its own course. Never trust a client-supplied
-  // course when authorizing completion of that lesson.
+  if (courseDocumentId) {
+    return hasEnrollment(strapi, user.id, courseDocumentId);
+  }
+
+  // Module-based route: check if enrolled in any parent course
+  const moduleDocumentId =
+    policyContext.params?.moduleDocumentId ??
+    relationDocumentId(policyContext.request.body?.data?.module);
+
+  if (moduleDocumentId) {
+    const module = await strapi.documents('api::module.module').findOne({
+      documentId: moduleDocumentId,
+      populate: { courses: { fields: ['documentId'] } },
+    });
+    return hasEnrollmentInAnyModuleCourse(strapi, user.id, module);
+  }
+
+  // Lesson-based route: find modules → courses
   const lessonDocumentId =
     policyContext.params?.lessonDocumentId ??
     relationDocumentId(policyContext.request.body?.data?.lesson);
@@ -18,25 +36,30 @@ export default async (policyContext: any, _config: unknown, { strapi }: any) => 
   if (lessonDocumentId) {
     const lesson = await strapi.documents('api::lesson.lesson').findOne({
       documentId: lessonDocumentId,
-      populate: { course: { fields: ['documentId'] } },
+      populate: { modules: { populate: { courses: { fields: ['documentId'] } } } },
     });
-    courseDocumentId = (lesson?.course as any)?.documentId;
+    const courses = (lesson?.modules ?? []).flatMap((m: any) => m.courses ?? []);
+    for (const course of courses) {
+      if (await hasEnrollment(strapi, user.id, course.documentId)) return true;
+    }
+    return false;
   }
 
-  // Quiz routes are authorized against the quiz's stored course. A supplied
-  // course id must never grant access to a quiz from another course.
+  // Quiz-based route: find modules → courses
   const quizDocumentId = policyContext.request.path?.startsWith('/api/quizzes/')
     ? policyContext.params?.documentId
     : undefined;
   if (quizDocumentId) {
     const quiz = await strapi.documents('api::quiz.quiz').findOne({
       documentId: quizDocumentId,
-      populate: { course: { fields: ['documentId'] } },
+      populate: { modules: { populate: { courses: { fields: ['documentId'] } } } },
     });
-    courseDocumentId = (quiz?.course as any)?.documentId;
+    const courses = (quiz?.modules ?? []).flatMap((m: any) => m.courses ?? []);
+    for (const course of courses) {
+      if (await hasEnrollment(strapi, user.id, course.documentId)) return true;
+    }
+    return false;
   }
 
-  if (!courseDocumentId) return false;
-
-  return hasEnrollment(strapi, user.id, courseDocumentId);
+  return false;
 };

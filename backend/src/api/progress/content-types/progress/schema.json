@@ -5,7 +5,7 @@
     "singularName": "progress",
     "pluralName": "progresses",
     "displayName": "Lesson Completion",
-    "description": "One persisted lesson completion per student and lesson"
+    "description": "One persisted lesson completion per student, course, and lesson"
   },
   "options": {
     "draftAndPublish": false

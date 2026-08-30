@@ -20,22 +20,16 @@
       "relation": "manyToOne",
       "target": "plugin::users-permissions.user"
     },
-    "lessons": {
+    "modules": {
       "type": "relation",
-      "relation": "oneToMany",
-      "target": "api::lesson.lesson",
-      "mappedBy": "course"
+      "relation": "manyToMany",
+      "target": "api::module.module",
+      "mappedBy": "courses"
     },
     "enrollments": {
       "type": "relation",
       "relation": "oneToMany",
       "target": "api::enrollment.enrollment",
-      "mappedBy": "course"
-    },
-    "quizzes": {
-      "type": "relation",
-      "relation": "oneToMany",
-      "target": "api::quiz.quiz",
       "mappedBy": "course"
     }
   }

@@ -14,12 +14,17 @@
     "content": { "type": "text" },
     "videoUrl": { "type": "string" },
     "order": { "type": "integer", "default": 0 },
-    "course": {
+    "modules": {
       "type": "relation",
-      "relation": "manyToOne",
-      "target": "api::course.course",
-      "inversedBy": "lessons",
-      "required": true
+      "relation": "manyToMany",
+      "target": "api::module.module",
+      "mappedBy": "lessons"
+    },
+    "comments": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::comment.comment",
+      "mappedBy": "lesson"
     }
   }
 }

@@ -33,7 +33,7 @@ export default function MyCoursesPage() {
           {availableEnrollments.map(({ documentId, course, enrolledAt }) => {
             const progress = progressByCourse.get(course.documentId) ?? {
               completed: 0,
-              totalLessons: course.lessons?.length ?? 0,
+              totalLessons: 0,
               percent: 0,
             };
             return <article className="course-card" key={documentId}>

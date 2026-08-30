@@ -1,6 +1,6 @@
 import { factories } from '@strapi/strapi';
 
-import { relationDocumentId } from '../../../policies/course-access';
+import { isRelatedToCourse, relationDocumentId } from '../../../policies/course-access';
 
 type ProgressSummary = {
   courseDocumentId: string;
@@ -10,21 +10,31 @@ type ProgressSummary = {
   completedLessonDocumentIds: string[];
 };
 
+/**
+ * Count total lessons across all modules of a course.
+ */
+async function countCourseLessons(strapi: any, courseDocumentId: string): Promise<number> {
+  const modules = await strapi.documents('api::module.module').findMany({
+    filters: { courses: { documentId: { $eq: courseDocumentId } } },
+    populate: { lessons: { fields: ['documentId'] } },
+    limit: 10000,
+  });
+  const lessonIds = new Set<string>();
+  for (const module of modules) {
+    for (const lesson of (module.lessons ?? [])) {
+      lessonIds.add(lesson.documentId);
+    }
+  }
+  return lessonIds.size;
+}
+
 export async function computeCourseProgress(
   strapi: any,
   studentId: number,
   courseDocumentId: string,
 ): Promise<ProgressSummary> {
-  const [totalLessons, completed, completionRows] = await Promise.all([
-    strapi.documents('api::lesson.lesson').count({
-      filters: { course: { documentId: { $eq: courseDocumentId } } },
-    }),
-    strapi.documents('api::progress.progress').count({
-      filters: {
-        student: { id: { $eq: studentId } },
-        course: { documentId: { $eq: courseDocumentId } },
-      },
-    }),
+  const [totalLessons, completionRows] = await Promise.all([
+    countCourseLessons(strapi, courseDocumentId),
     strapi.documents('api::progress.progress').findMany({
       filters: {
         student: { id: { $eq: studentId } },
@@ -38,6 +48,7 @@ export async function computeCourseProgress(
   const completedLessonDocumentIds = completionRows
     .map((row: any) => row.lesson?.documentId)
     .filter((documentId: unknown): documentId is string => typeof documentId === 'string');
+  const completed = completedLessonDocumentIds.length;
   const percent = totalLessons === 0
     ? 0
     : Math.round((completed / totalLessons) * 100);
@@ -55,21 +66,24 @@ export default factories.createCoreController('api::progress.progress', ({ strap
   async complete(ctx) {
     const user = ctx.state.user;
     const lessonDocumentId = relationDocumentId(ctx.request.body?.data?.lesson);
+    const courseDocumentId = relationDocumentId(ctx.request.body?.data?.course);
     if (!lessonDocumentId) return ctx.badRequest('lesson is required');
+    if (!courseDocumentId) return ctx.badRequest('course is required');
 
     const lesson = await strapi.documents('api::lesson.lesson').findOne({
       documentId: lessonDocumentId,
-      populate: { course: true },
+      populate: { modules: { populate: { courses: { fields: ['documentId'] } } } },
     });
     if (!lesson) return ctx.notFound('Lesson not found');
-
-    const courseDocumentId = (lesson.course as any)?.documentId;
-    if (!courseDocumentId) return ctx.badRequest('Lesson is not assigned to a course');
+    if (!isRelatedToCourse(lesson, courseDocumentId)) {
+      return ctx.badRequest('Lesson is not assigned to this course');
+    }
 
     const existing = await strapi.documents('api::progress.progress').findMany({
       filters: {
         student: { id: { $eq: user.id } },
         lesson: { documentId: { $eq: lessonDocumentId } },
+        course: { documentId: { $eq: courseDocumentId } },
       },
       limit: 1,
     });
@@ -89,10 +103,14 @@ export default factories.createCoreController('api::progress.progress', ({ strap
   async uncomplete(ctx) {
     const user = ctx.state.user;
     const lessonDocumentId = ctx.params.lessonDocumentId;
+    const courseDocumentId = relationDocumentId(ctx.request.query?.course);
+    if (!courseDocumentId) return ctx.badRequest('course is required');
+
     const records = await strapi.documents('api::progress.progress').findMany({
       filters: {
         student: { id: { $eq: user.id } },
         lesson: { documentId: { $eq: lessonDocumentId } },
+        course: { documentId: { $eq: courseDocumentId } },
       },
       limit: 1,
     });

@@ -40,11 +40,16 @@ export default factories.createCoreController('api::enrollment.enrollment', ({ s
       populate: {
         course: {
           populate: {
-            lessons: { sort: ['order:asc', 'createdAt:asc'] },
+            modules: {
+              sort: ['order:asc', 'createdAt:asc'],
+              populate: {
+                lessons: { sort: ['order:asc', 'createdAt:asc'] },
+              },
+            },
           },
         },
       },
     });
-    return { data: rows.filter((row) => Boolean(row.course)) };
+    return { data: rows.filter((row) => Boolean((row as any).course)) };
   },
 }));

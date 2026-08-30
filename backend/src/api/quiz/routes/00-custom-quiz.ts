@@ -2,8 +2,8 @@ export default {
   routes: [
     {
       method: 'GET',
-      path: '/courses/:courseDocumentId/quizzes',
-      handler: 'quiz.courseQuizzes',
+      path: '/modules/:moduleDocumentId/quizzes',
+      handler: 'quiz.moduleQuizzes',
       config: { policies: ['global::can-view-course-lessons'] },
     },
     {

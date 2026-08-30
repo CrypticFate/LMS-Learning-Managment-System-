@@ -1,6 +1,6 @@
 import { factories } from '@strapi/strapi';
 
-import { relationDocumentId } from '../../../policies/course-access';
+import { isRelatedToCourse, relationDocumentId } from '../../../policies/course-access';
 
 type QuizQuestionInput = {
   questionText: string;
@@ -52,19 +52,22 @@ function parseQuizInput(data: any): QuizInput | string {
 
 export default factories.createCoreController('api::quiz.quiz', ({ strapi }) => ({
   async create(ctx) {
-    const courseDocumentId = relationDocumentId(ctx.request.body?.data?.course);
-    if (!courseDocumentId) return ctx.badRequest('course is required');
+    const moduleDocumentId = relationDocumentId(ctx.request.body?.data?.module);
+    if (!moduleDocumentId) return ctx.badRequest('module is required');
 
     const input = parseQuizInput(ctx.request.body?.data);
     if (typeof input === 'string') return ctx.badRequest(input);
 
-    const course = await strapi.documents('api::course.course').findOne({
-      documentId: courseDocumentId,
+    const module = await strapi.documents('api::module.module').findOne({
+      documentId: moduleDocumentId,
     });
-    if (!course) return ctx.notFound('Course not found');
+    if (!module) return ctx.notFound('Module not found');
 
     const created = await strapi.documents('api::quiz.quiz').create({
-      data: { ...input, course: courseDocumentId },
+      data: {
+        ...input,
+        modules: { connect: [moduleDocumentId] },
+      },
       populate: { questions: true },
     });
     return { data: created };
@@ -75,7 +78,10 @@ export default factories.createCoreController('api::quiz.quiz', ({ strapi }) => 
       documentId: routeDocumentId(ctx),
       populate: {
         questions: true,
-        course: { fields: ['documentId', 'title'] },
+        modules: {
+          fields: ['documentId', 'title'],
+          populate: { courses: { fields: ['documentId', 'title'] } },
+        },
       },
     });
     if (!quiz) return ctx.notFound('Quiz not found');
@@ -86,8 +92,6 @@ export default factories.createCoreController('api::quiz.quiz', ({ strapi }) => 
     const input = parseQuizInput(ctx.request.body?.data);
     if (typeof input === 'string') return ctx.badRequest(input);
 
-    // A quiz cannot be moved to a different course through update. This keeps
-    // an instructor from moving an owned quiz into another instructor's scope.
     const updated = await strapi.documents('api::quiz.quiz').update({
       documentId: routeDocumentId(ctx),
       data: input,
@@ -113,9 +117,9 @@ export default factories.createCoreController('api::quiz.quiz', ({ strapi }) => 
     return { data: deleted };
   },
 
-  async courseQuizzes(ctx) {
+  async moduleQuizzes(ctx) {
     const quizzes = await strapi.documents('api::quiz.quiz').findMany({
-      filters: { course: { documentId: { $eq: ctx.params.courseDocumentId } } },
+      filters: { modules: { documentId: { $eq: ctx.params.moduleDocumentId } } },
       populate: { questions: true },
       sort: ['createdAt:asc'],
       limit: 10000,
@@ -130,16 +134,24 @@ export default factories.createCoreController('api::quiz.quiz', ({ strapi }) => 
   },
 
   async take(ctx) {
+    const courseDocumentId = relationDocumentId(ctx.request.query?.course);
+    if (!courseDocumentId) return ctx.badRequest('course is required');
+
     const quiz = await strapi.documents('api::quiz.quiz').findOne({
       documentId: ctx.params.documentId,
-      populate: { questions: true, course: { fields: ['documentId'] } },
+      populate: {
+        questions: true,
+        modules: { populate: { courses: { fields: ['documentId'] } } },
+      },
     });
     if (!quiz) return ctx.notFound('Quiz not found');
+    if (!isRelatedToCourse(quiz, courseDocumentId)) return ctx.notFound('Quiz not found');
+
 
     return {
       data: {
         documentId: quiz.documentId,
-        courseDocumentId: (quiz.course as any)?.documentId,
+        courseDocumentId,
         title: quiz.title,
         questions: ((quiz.questions ?? []) as any[]).map((question, index) => ({
           index,
@@ -151,14 +163,21 @@ export default factories.createCoreController('api::quiz.quiz', ({ strapi }) => 
   },
 
   async submit(ctx) {
+    const courseDocumentId = relationDocumentId(ctx.request.body?.data?.course);
+    if (!courseDocumentId) return ctx.badRequest('course is required');
+
     const answers = ctx.request.body?.data?.answers;
     if (!Array.isArray(answers)) return ctx.badRequest('answers must be an array');
 
     const quiz = await strapi.documents('api::quiz.quiz').findOne({
       documentId: ctx.params.documentId,
-      populate: { questions: true, course: { fields: ['documentId'] } },
+      populate: {
+        questions: true,
+        modules: { populate: { courses: { fields: ['documentId'] } } },
+      },
     });
     if (!quiz) return ctx.notFound('Quiz not found');
+    if (!isRelatedToCourse(quiz, courseDocumentId)) return ctx.notFound('Quiz not found');
 
     const questions = (quiz.questions ?? []) as any[];
     if (questions.length === 0) return ctx.badRequest('Quiz has no questions');
@@ -181,8 +200,7 @@ export default factories.createCoreController('api::quiz.quiz', ({ strapi }) => 
       if (normalizedAnswers[index] === Number(question.correctIndex)) score += 1;
     });
     const total = questions.length;
-    const courseDocumentId = (quiz.course as any)?.documentId;
-    if (!courseDocumentId) return ctx.badRequest('Quiz is not assigned to a course');
+
 
     const attempt = await strapi.documents('api::quiz-attempt.quiz-attempt').create({
       data: {

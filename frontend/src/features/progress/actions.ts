@@ -16,7 +16,7 @@ export async function markLessonCompleteAction(
   await strapiFetch('/api/progress/complete', {
     auth: true,
     method: 'POST',
-    body: JSON.stringify({ data: { lesson: lessonDocumentId } }),
+    body: JSON.stringify({ data: { course: courseDocumentId, lesson: lessonDocumentId } }),
   });
   revalidateProgress(courseDocumentId);
 }
@@ -25,7 +25,7 @@ export async function unmarkLessonCompleteAction(
   courseDocumentId: string,
   lessonDocumentId: string,
 ): Promise<void> {
-  await strapiFetch(`/api/progress/complete/${encodeURIComponent(lessonDocumentId)}`, {
+  await strapiFetch(`/api/progress/complete/${encodeURIComponent(lessonDocumentId)}?course=${encodeURIComponent(courseDocumentId)}`, {
     auth: true,
     method: 'DELETE',
   });

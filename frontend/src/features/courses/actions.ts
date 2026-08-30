@@ -38,6 +38,19 @@ function courseData(formData: FormData) {
   };
 }
 
+function moduleData(formData: FormData) {
+  const rawOrder = text(formData, 'order');
+  const order = Number.parseInt(rawOrder || '0', 10);
+  if (!Number.isInteger(order) || order < 0) {
+    throw new Error('Module order must be a non-negative integer.');
+  }
+  return {
+    title: required(formData, 'title'),
+    description: text(formData, 'description') || null,
+    order,
+  };
+}
+
 function lessonData(formData: FormData) {
   const rawOrder = text(formData, 'order');
   const order = Number.parseInt(rawOrder || '0', 10);
@@ -55,6 +68,8 @@ function lessonData(formData: FormData) {
     order,
   };
 }
+
+/* ────── Course CRUD ────── */
 
 export async function createCourseAction(
   returnPath: string,
@@ -96,8 +111,51 @@ export async function deleteCourseAction(
   revalidatePath('/courses');
 }
 
-export async function createLessonAction(
+/* ────── Module CRUD ────── */
+
+export async function createModuleAction(
   courseDocumentId: string,
+  returnPath: string,
+  formData: FormData,
+): Promise<void> {
+  await strapiFetch('/api/modules', {
+    auth: true,
+    method: 'POST',
+    body: JSON.stringify({
+      data: { ...moduleData(formData), course: courseDocumentId },
+    }),
+  });
+  revalidatePath(returnPath);
+}
+
+export async function updateModuleAction(
+  moduleDocumentId: string,
+  returnPath: string,
+  formData: FormData,
+): Promise<void> {
+  await strapiFetch(`/api/modules/${encodeURIComponent(moduleDocumentId)}`, {
+    auth: true,
+    method: 'PUT',
+    body: JSON.stringify({ data: moduleData(formData) }),
+  });
+  revalidatePath(returnPath);
+}
+
+export async function deleteModuleAction(
+  moduleDocumentId: string,
+  returnPath: string,
+): Promise<void> {
+  await strapiFetch(`/api/modules/${encodeURIComponent(moduleDocumentId)}`, {
+    auth: true,
+    method: 'DELETE',
+  });
+  revalidatePath(returnPath);
+}
+
+/* ────── Lesson CRUD ────── */
+
+export async function createLessonAction(
+  moduleDocumentId: string,
   returnPath: string,
   formData: FormData,
 ): Promise<void> {
@@ -105,17 +163,15 @@ export async function createLessonAction(
     auth: true,
     method: 'POST',
     body: JSON.stringify({
-      data: { ...lessonData(formData), course: courseDocumentId },
+      data: { ...lessonData(formData), module: moduleDocumentId },
     }),
   });
   revalidatePath(returnPath);
-  revalidatePath(`/student/courses/${courseDocumentId}`);
   revalidatePath('/student/my-courses');
 }
 
 export async function updateLessonAction(
   lessonDocumentId: string,
-  courseDocumentId: string,
   returnPath: string,
   formData: FormData,
 ): Promise<void> {
@@ -125,13 +181,11 @@ export async function updateLessonAction(
     body: JSON.stringify({ data: lessonData(formData) }),
   });
   revalidatePath(returnPath);
-  revalidatePath(`/student/courses/${courseDocumentId}`);
   revalidatePath('/student/my-courses');
 }
 
 export async function deleteLessonAction(
   lessonDocumentId: string,
-  courseDocumentId: string,
   returnPath: string,
 ): Promise<void> {
   await strapiFetch(`/api/lessons/${encodeURIComponent(lessonDocumentId)}`, {
@@ -139,9 +193,123 @@ export async function deleteLessonAction(
     method: 'DELETE',
   });
   revalidatePath(returnPath);
-  revalidatePath(`/student/courses/${courseDocumentId}`);
   revalidatePath('/student/my-courses');
 }
+
+/* Many-to-many assignments */
+
+function revalidateAssignments(returnPath: string): void {
+  revalidatePath(returnPath);
+  revalidatePath('/student/my-courses');
+}
+
+export async function attachModuleToCourseAction(
+  courseDocumentId: string,
+  returnPath: string,
+  formData: FormData,
+): Promise<void> {
+  const moduleDocumentId = required(formData, 'moduleDocumentId');
+  await strapiFetch(
+    `/api/courses/${encodeURIComponent(courseDocumentId)}/modules/${encodeURIComponent(moduleDocumentId)}`,
+    { auth: true, method: 'POST' },
+  );
+  revalidateAssignments(returnPath);
+}
+
+export async function detachModuleFromCourseAction(
+  courseDocumentId: string,
+  moduleDocumentId: string,
+  returnPath: string,
+): Promise<void> {
+  await strapiFetch(
+    `/api/courses/${encodeURIComponent(courseDocumentId)}/modules/${encodeURIComponent(moduleDocumentId)}`,
+    { auth: true, method: 'DELETE' },
+  );
+  revalidateAssignments(returnPath);
+}
+
+export async function attachLessonToModuleAction(
+  moduleDocumentId: string,
+  returnPath: string,
+  formData: FormData,
+): Promise<void> {
+  const lessonDocumentId = required(formData, 'lessonDocumentId');
+  await strapiFetch(
+    `/api/modules/${encodeURIComponent(moduleDocumentId)}/lessons/${encodeURIComponent(lessonDocumentId)}`,
+    { auth: true, method: 'POST' },
+  );
+  revalidateAssignments(returnPath);
+}
+
+export async function detachLessonFromModuleAction(
+  moduleDocumentId: string,
+  lessonDocumentId: string,
+  returnPath: string,
+): Promise<void> {
+  await strapiFetch(
+    `/api/modules/${encodeURIComponent(moduleDocumentId)}/lessons/${encodeURIComponent(lessonDocumentId)}`,
+    { auth: true, method: 'DELETE' },
+  );
+  revalidateAssignments(returnPath);
+}
+
+export async function attachQuizToModuleAction(
+  moduleDocumentId: string,
+  returnPath: string,
+  formData: FormData,
+): Promise<void> {
+  const quizDocumentId = required(formData, 'quizDocumentId');
+  await strapiFetch(
+    `/api/modules/${encodeURIComponent(moduleDocumentId)}/quizzes/${encodeURIComponent(quizDocumentId)}`,
+    { auth: true, method: 'POST' },
+  );
+  revalidateAssignments(returnPath);
+}
+
+export async function detachQuizFromModuleAction(
+  moduleDocumentId: string,
+  quizDocumentId: string,
+  returnPath: string,
+): Promise<void> {
+  await strapiFetch(
+    `/api/modules/${encodeURIComponent(moduleDocumentId)}/quizzes/${encodeURIComponent(quizDocumentId)}`,
+    { auth: true, method: 'DELETE' },
+  );
+  revalidateAssignments(returnPath);
+}
+
+/* ────── Comment CRUD ────── */
+
+export async function createCommentAction(
+  lessonDocumentId: string,
+  courseDocumentId: string,
+  formData: FormData,
+): Promise<void> {
+  const body = text(formData, 'body');
+  if (!body) throw new Error('Comment body is required.');
+
+  await strapiFetch('/api/comments', {
+    auth: true,
+    method: 'POST',
+    body: JSON.stringify({
+      data: { body, lesson: lessonDocumentId },
+    }),
+  });
+  revalidatePath(`/student/courses/${courseDocumentId}`);
+}
+
+export async function deleteCommentAction(
+  commentDocumentId: string,
+  courseDocumentId: string,
+): Promise<void> {
+  await strapiFetch(`/api/comments/${encodeURIComponent(commentDocumentId)}`, {
+    auth: true,
+    method: 'DELETE',
+  });
+  revalidatePath(`/student/courses/${courseDocumentId}`);
+}
+
+/* ────── Enrollment ────── */
 
 export async function enrollInCourseAction(
   courseDocumentId: string,

@@ -51,14 +51,13 @@ function quizData(formData: FormData): { title: string; questions: QuizQuestion[
   return { title, questions: normalized };
 }
 
-function revalidateQuizPages(courseDocumentId: string, returnPath: string): void {
+function revalidateQuizPages(returnPath: string): void {
   revalidatePath(returnPath);
-  revalidatePath(`/student/courses/${courseDocumentId}`);
   revalidatePath('/student/results');
 }
 
 export async function createQuizAction(
-  courseDocumentId: string,
+  moduleDocumentId: string,
   returnPath: string,
   formData: FormData,
 ): Promise<void> {
@@ -66,15 +65,14 @@ export async function createQuizAction(
     auth: true,
     method: 'POST',
     body: JSON.stringify({
-      data: { ...quizData(formData), course: courseDocumentId },
+      data: { ...quizData(formData), module: moduleDocumentId },
     }),
   });
-  revalidateQuizPages(courseDocumentId, returnPath);
+  revalidateQuizPages(returnPath);
 }
 
 export async function updateQuizAction(
   quizDocumentId: string,
-  courseDocumentId: string,
   returnPath: string,
   formData: FormData,
 ): Promise<void> {
@@ -83,19 +81,18 @@ export async function updateQuizAction(
     method: 'PUT',
     body: JSON.stringify({ data: quizData(formData) }),
   });
-  revalidateQuizPages(courseDocumentId, returnPath);
+  revalidateQuizPages(returnPath);
 }
 
 export async function deleteQuizAction(
   quizDocumentId: string,
-  courseDocumentId: string,
   returnPath: string,
 ): Promise<void> {
   await strapiFetch(`/api/quizzes/${encodeURIComponent(quizDocumentId)}`, {
     auth: true,
     method: 'DELETE',
   });
-  revalidateQuizPages(courseDocumentId, returnPath);
+  revalidateQuizPages(returnPath);
 }
 
 function errorMessage(error: unknown): string {
@@ -112,6 +109,7 @@ function errorMessage(error: unknown): string {
 
 export async function submitQuizAction(
   quizDocumentId: string,
+  courseDocumentId: string,
   _previousState: SubmitQuizState,
   formData: FormData,
 ): Promise<SubmitQuizState> {
@@ -134,7 +132,7 @@ export async function submitQuizAction(
       {
         auth: true,
         method: 'POST',
-        body: JSON.stringify({ data: { answers } }),
+        body: JSON.stringify({ data: { answers, course: courseDocumentId } }),
       },
     );
     revalidatePath('/student/results');

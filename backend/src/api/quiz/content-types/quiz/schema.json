@@ -11,12 +11,11 @@
   },
   "attributes": {
     "title": { "type": "string", "required": true },
-    "course": {
+    "modules": {
       "type": "relation",
-      "relation": "manyToOne",
-      "target": "api::course.course",
-      "inversedBy": "quizzes",
-      "required": true
+      "relation": "manyToMany",
+      "target": "api::module.module",
+      "mappedBy": "quizzes"
     },
     "questions": {
       "type": "component",

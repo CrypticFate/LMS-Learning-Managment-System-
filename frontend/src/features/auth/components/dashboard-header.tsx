@@ -40,7 +40,23 @@ export function DashboardHeader({ user }: { user: CurrentUser }) {
             <Link href="/student/results">Results</Link>
           </>
         )}
-        <span>{user.username} · {user.role.name}</span>
+        <span
+          aria-label={`${user.username}, ${user.role.name}`}
+          className="dashboard-profile-icon"
+          role="img"
+          title={`${user.username} · ${user.role.name}`}
+        >
+          <svg aria-hidden="true" viewBox="0 0 24 24">
+            <path
+              d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm7 8a7 7 0 0 0-14 0"
+              fill="none"
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="1.8"
+            />
+          </svg>
+        </span>
         <form action={logoutAction}>
           <button className="link-button" type="submit">Sign out</button>
         </form>

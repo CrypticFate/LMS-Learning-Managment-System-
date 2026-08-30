@@ -9,11 +9,11 @@ import type {
   StudentQuiz,
 } from './types';
 
-export async function getCourseQuizSummaries(
-  courseDocumentId: string,
+export async function getModuleQuizSummaries(
+  moduleDocumentId: string,
 ): Promise<QuizSummary[]> {
   const response = await strapiFetch<{ data: QuizSummary[] }>(
-    `/api/courses/${encodeURIComponent(courseDocumentId)}/quizzes`,
+    `/api/modules/${encodeURIComponent(moduleDocumentId)}/quizzes`,
     { auth: true },
   );
   return response.data;
@@ -27,9 +27,12 @@ export async function getManageQuiz(documentId: string): Promise<Quiz> {
   return response.data;
 }
 
-export async function getTakeQuiz(documentId: string): Promise<StudentQuiz> {
+export async function getTakeQuiz(
+  documentId: string,
+  courseDocumentId: string,
+): Promise<StudentQuiz> {
   const response = await strapiFetch<{ data: StudentQuiz }>(
-    `/api/quizzes/${encodeURIComponent(documentId)}/take`,
+    `/api/quizzes/${encodeURIComponent(documentId)}/take?course=${encodeURIComponent(courseDocumentId)}`,
     { auth: true },
   );
   return response.data;

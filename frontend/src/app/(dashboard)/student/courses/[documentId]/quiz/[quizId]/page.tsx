@@ -12,7 +12,7 @@ type QuizPageProps = {
 
 async function renderQuiz({ params }: QuizPageProps) {
   const { documentId, quizId } = await params;
-  const quiz = await getTakeQuiz(quizId);
+  const quiz = await getTakeQuiz(quizId, documentId);
   if (quiz.courseDocumentId !== documentId) notFound();
 
   return (
