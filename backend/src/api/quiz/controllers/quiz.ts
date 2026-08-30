@@ -6,6 +6,7 @@ type QuizQuestionInput = {
   questionText: string;
   options: string[];
   correctIndex: number;
+  explanation?: string;
 };
 
 type QuizInput = {
@@ -44,7 +45,9 @@ function parseQuizInput(data: any): QuizInput | string {
     if (!Number.isInteger(correctIndex) || correctIndex < 0 || correctIndex >= options.length) {
       return `Question ${index + 1} has an invalid correct answer`;
     }
-    questions.push({ questionText, options, correctIndex });
+
+    const explanation = typeof raw?.explanation === 'string' ? raw.explanation.trim() : '';
+    questions.push({ questionText, options, correctIndex, explanation });
   }
 
   return { title, questions };
@@ -219,6 +222,30 @@ export default factories.createCoreController('api::quiz.quiz', ({ strapi }) => 
     };
   },
 
+  async solution(ctx) {
+    const attemptDocumentId = relationDocumentId(ctx.request.query?.attempt);
+    if (!attemptDocumentId) return ctx.badRequest('attempt is required');
+
+    const attempt = await strapi.documents('api::quiz-attempt.quiz-attempt').findOne({
+      documentId: attemptDocumentId,
+      populate: { quiz: { populate: { questions: true } }, student: { fields: ['id'] } },
+    });
+    if (!attempt || attempt.student?.id !== ctx.state.user.id) return ctx.notFound('Attempt not found');
+
+    const quiz = attempt.quiz as any;
+    if (!quiz || quiz.documentId !== ctx.params.documentId) return ctx.notFound('Attempt not found');
+
+    return {
+      data: {
+        attemptDocumentId: attempt.documentId,
+        questions: ((quiz.questions ?? []) as any[]).map((question, index) => ({
+          index,
+          explanation: question.explanation ?? '',
+        })),
+      },
+    };
+  },
+
   async submit(ctx) {
     let courseDocumentId = relationDocumentId(ctx.request.body?.data?.course);
 
@@ -284,6 +311,10 @@ export default factories.createCoreController('api::quiz.quiz', ({ strapi }) => 
         total,
         percent: Math.round((score / total) * 100),
         attemptDocumentId: attempt.documentId,
+        explanations: questions.map((question, index) => ({
+          index,
+          explanation: question.explanation ?? '',
+        })),
       },
     };
   },

@@ -45,7 +45,10 @@ function quizData(formData: FormData): { title: string; questions: QuizQuestion[
     if (!Number.isInteger(correctIndex) || correctIndex < 0 || correctIndex >= options.length) {
       throw new Error(`Choose the correct answer for question ${questionIndex + 1}.`);
     }
-    return { questionText, options, correctIndex };
+    const explanation = typeof value.explanation === 'string'
+      ? value.explanation.trim()
+      : '';
+    return { questionText, options, correctIndex, explanation };
   });
 
   return { title, questions: normalized };

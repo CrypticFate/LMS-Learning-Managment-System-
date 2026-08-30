@@ -911,6 +911,51 @@ progress::-moz-progress-bar {
   justify-content: center;
 }
 
+.quiz-explanations {
+  text-align: left;
+  border: 1px solid var(--border);
+  border-radius: 0.7rem;
+  background: var(--surface);
+}
+
+.quiz-explanations summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 2.75rem;
+  padding: 0.8rem 1rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.quiz-explanations summary::after {
+  content: '+';
+  color: var(--muted);
+}
+
+.quiz-explanations[open] summary::after {
+  content: '-';
+}
+
+.quiz-explanation-list {
+  display: grid;
+  gap: 0.85rem;
+  padding: 0 1rem 1rem;
+}
+
+.quiz-explanation-item {
+  display: grid;
+  gap: 0.45rem;
+  padding: 1rem;
+  border-radius: 0.6rem;
+  background: #f6faf8;
+}
+
+.quiz-explanation-item h3,
+.quiz-explanation-item p {
+  margin: 0;
+}
+
 .results-table {
   padding: 1rem;
 }

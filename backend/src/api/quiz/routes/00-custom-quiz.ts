@@ -26,6 +26,12 @@ export default {
     },
     {
       method: 'GET',
+      path: '/quizzes/:documentId/solution',
+      handler: 'quiz.solution',
+      config: { policies: ['global::is-enrolled'] },
+    },
+    {
+      method: 'GET',
       path: '/quizzes/:documentId/attempts',
       handler: 'quiz.attempts',
       config: { policies: ['global::can-manage-quiz'] },

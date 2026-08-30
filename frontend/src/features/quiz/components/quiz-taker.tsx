@@ -27,6 +27,8 @@ export function QuizTaker({ quiz }: { quiz: StudentQuiz }) {
     submitQuizAction.bind(null, quiz.documentId, quiz.courseDocumentId),
     INITIAL_STATE,
   );
+  const explanations = state.result?.explanations ?? [];
+  const explanationByIndex = new Map(explanations.map((item) => [item.index, item.explanation]));
 
   if (state.result) {
     return (
@@ -39,6 +41,21 @@ export function QuizTaker({ quiz }: { quiz: StudentQuiz }) {
           <strong>{state.result.percent}%</strong>
           <progress max={100} value={state.result.percent}>{state.result.percent}%</progress>
           <p className="muted">This attempt has been saved to your results history.</p>
+          <details className="quiz-explanations">
+            <summary>Show explanations</summary>
+            <div className="quiz-explanation-list">
+              {quiz.questions.map((question, questionIndex) => {
+                const explanation = explanationByIndex.get(question.index)?.trim();
+                return (
+                  <section className="quiz-explanation-item" key={question.index}>
+                    <h3>Question {questionIndex + 1}</h3>
+                    <p>{question.questionText}</p>
+                    <div>{explanation || 'No explanation has been added for this question yet.'}</div>
+                  </section>
+                );
+              })}
+            </div>
+          </details>
           <div className="button-row">
             <Link className={buttonVariants()} href="/student/results">View all results</Link>
             <a className={buttonVariants({ variant: 'outline' })} href="">Take again</a>

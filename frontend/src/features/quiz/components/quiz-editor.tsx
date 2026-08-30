@@ -24,6 +24,7 @@ function blankQuestion(): EditorQuestion {
     questionText: '',
     options: ['', ''],
     correctIndex: 0,
+    explanation: '',
   };
 }
 
@@ -63,10 +64,11 @@ export function QuizEditor({
     });
   }
 
-  const serialized = questions.map(({ questionText, options, correctIndex }) => ({
+  const serialized = questions.map(({ questionText, options, correctIndex, explanation }) => ({
     questionText,
     options,
     correctIndex,
+    explanation: explanation ?? '',
   }));
 
   return (
@@ -144,6 +146,18 @@ export function QuizEditor({
                 Add option
               </Button>
             </div>
+            <Label>
+              Explanation shown after attempt
+              <Textarea
+                onChange={(event) => updateQuestion(questionIndex, (current) => ({
+                  ...current,
+                  explanation: event.target.value,
+                }))}
+                placeholder="Explain why the correct answer is right and what to review."
+                rows={3}
+                value={question.explanation ?? ''}
+              />
+            </Label>
             <Button
               className="danger-button justify-self-start"
               size="sm"

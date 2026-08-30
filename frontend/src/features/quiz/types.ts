@@ -3,6 +3,7 @@ export type QuizQuestion = {
   questionText: string;
   options: string[];
   correctIndex: number;
+  explanation?: string;
 };
 
 export type Quiz = {
@@ -35,11 +36,17 @@ export type StudentQuiz = {
   questions: StudentQuizQuestion[];
 };
 
+export type QuizQuestionExplanation = {
+  index: number;
+  explanation: string;
+};
+
 export type QuizGradeResult = {
   score: number;
   total: number;
   percent: number;
   attemptDocumentId: string;
+  explanations: QuizQuestionExplanation[];
 };
 
 export type SubmitQuizState = {

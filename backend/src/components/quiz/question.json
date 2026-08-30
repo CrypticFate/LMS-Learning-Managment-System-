@@ -17,6 +17,9 @@
     "correctIndex": {
       "type": "integer",
       "required": true
+    },
+    "explanation": {
+      "type": "text"
     }
   }
 }
