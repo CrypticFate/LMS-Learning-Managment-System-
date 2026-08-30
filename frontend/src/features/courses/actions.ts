@@ -10,6 +10,20 @@ function text(formData: FormData, field: string): string {
   return typeof value === 'string' ? value.trim() : '';
 }
 
+function optionalVideoUrl(formData: FormData): string | null {
+  const raw = text(formData, 'videoUrl');
+  if (!raw) return null;
+
+  const candidate = /^[a-z][a-z\d+.-]*:\/\//i.test(raw) ? raw : `https://${raw}`;
+  try {
+    const url = new URL(candidate);
+    if (!['http:', 'https:'].includes(url.protocol)) throw new Error();
+    return url.toString();
+  } catch {
+    throw new Error('Video URL must be a valid http(s) URL.');
+  }
+}
+
 function required(formData: FormData, field: string): string {
   const value = text(formData, field);
   if (!value) throw new Error(`${field} is required.`);
@@ -31,13 +45,13 @@ function lessonData(formData: FormData) {
     throw new Error('Lesson order must be a non-negative integer.');
   }
   const content = text(formData, 'content');
-  const videoUrl = text(formData, 'videoUrl');
+  const videoUrl = optionalVideoUrl(formData);
   if (!content && !videoUrl) throw new Error('A lesson needs text or a video URL.');
 
   return {
     title: required(formData, 'title'),
     content: content || null,
-    videoUrl: videoUrl || null,
+    videoUrl,
     order,
   };
 }

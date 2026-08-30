@@ -19,7 +19,31 @@ function embeddableUrl(value?: string | null): string | null {
   if (!value) return null;
   try {
     const url = new URL(value);
-    return url.protocol === 'http:' || url.protocol === 'https:' ? url.toString() : null;
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') return null;
+
+    const hostname = url.hostname.toLowerCase().replace(/^www\./, '');
+    let youtubeId: string | null = null;
+
+    if (hostname === 'youtu.be') {
+      youtubeId = url.pathname.split('/').filter(Boolean)[0] ?? null;
+    } else if (
+      hostname === 'youtube.com' ||
+      hostname === 'm.youtube.com' ||
+      hostname === 'youtube-nocookie.com'
+    ) {
+      if (url.pathname === '/watch') {
+        youtubeId = url.searchParams.get('v');
+      } else {
+        const [kind, id] = url.pathname.split('/').filter(Boolean);
+        if (['embed', 'shorts', 'live'].includes(kind)) youtubeId = id ?? null;
+      }
+    }
+
+    if (youtubeId && /^[a-zA-Z0-9_-]+$/.test(youtubeId)) {
+      return `https://www.youtube-nocookie.com/embed/${youtubeId}`;
+    }
+
+    return url.toString();
   } catch {
     return null;
   }
@@ -91,7 +115,13 @@ async function renderLessonViewer({ params, searchParams }: LessonViewerProps) {
               <h2>{selected.title}</h2>
               {videoUrl && (
                 <div className="video-frame">
-                  <iframe src={videoUrl} title={selected.title} allowFullScreen />
+                  <iframe
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                    referrerPolicy="strict-origin-when-cross-origin"
+                    src={videoUrl}
+                    title={selected.title}
+                  />
                 </div>
               )}
               {selected.content && <div className="lesson-content">{selected.content}</div>}

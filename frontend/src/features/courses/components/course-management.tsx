@@ -88,7 +88,7 @@ export async function CourseManagement({
                       <label>Title<input name="title" defaultValue={lesson.title} required /></label>
                       <label>Order<input name="order" type="number" min="0" defaultValue={lesson.order} required /></label>
                       <label>Text<textarea name="content" rows={5} defaultValue={lesson.content ?? ''} /></label>
-                      <label>Video URL<input name="videoUrl" type="url" defaultValue={lesson.videoUrl ?? ''} /></label>
+                      <label>Video URL<input name="videoUrl" type="text" inputMode="url" placeholder="https://youtu.be/..." defaultValue={lesson.videoUrl ?? ''} /></label>
                       <div className="button-row">
                         <button type="submit">Save lesson</button>
                         <button className="danger-button" formAction={deleteLessonAction.bind(null, lesson.documentId, course.documentId, returnPath)} type="submit">Delete lesson</button>
@@ -103,7 +103,7 @@ export async function CourseManagement({
                     <label>Title<input name="title" required /></label>
                     <label>Order<input name="order" type="number" min="0" defaultValue={lessons.length} required /></label>
                     <label>Text<textarea name="content" rows={5} /></label>
-                    <label>Video URL<input name="videoUrl" type="url" /></label>
+                    <label>Video URL<input name="videoUrl" type="text" inputMode="url" placeholder="https://youtu.be/..." /></label>
                     <button type="submit">Add lesson</button>
                   </form>
                 </details>
