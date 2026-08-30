@@ -13,6 +13,7 @@ const adminNavItems = [
   { href: '/admin/users', label: 'Users' },
   { href: '/admin/courses', label: 'Courses' },
   { href: '/admin/blog', label: 'Blog' },
+  { href: '/admin/problem-sets', label: 'Problem Sets' },
 ];
 
 function isActive(pathname: string, href: string) {

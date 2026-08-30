@@ -15,17 +15,21 @@ const navItems = {
     { href: '/admin/users', label: 'Users' },
     { href: '/admin/courses', label: 'Courses' },
     { href: '/admin/blog', label: 'Blog' },
+    { href: '/admin/problem-sets', label: 'Problem Sets' },
   ],
   [ROLE.CONTENT_MANAGER]: [
     { href: '/content-manager', label: 'Content library' },
     { href: '/content-manager/blog', label: 'Blog' },
+    { href: '/content-manager/problem-sets', label: 'Problem Sets' },
   ],
   [ROLE.INSTRUCTOR]: [
     { href: '/instructor', label: 'My Courses' },
+    { href: '/instructor/problem-sets', label: 'Problem Sets' },
   ],
   [ROLE.STUDENT]: [
     { href: '/student', label: 'Overview' },
     { href: '/student/my-courses', label: 'My Courses' },
+    { href: '/student/problem-sets', label: 'Problem Set' },
     { href: '/student/results', label: 'Results' },
   ],
 };

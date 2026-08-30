@@ -39,6 +39,16 @@ export default function StudentDashboardPage() {
             <Link className={buttonVariants({ variant: 'outline' })} href="/student/results">View results</Link>
           </CardContent>
         </Card>
+        <Card className="learning-action-card">
+          <CardHeader>
+            <Badge variant="outline">Practice</Badge>
+            <CardTitle>Work through DSA problems</CardTitle>
+            <CardDescription>Open curated 450 DSA problems and track a separate practice progress bar.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Link className={buttonVariants({ variant: 'outline' })} href="/student/problem-sets">Open problem set</Link>
+          </CardContent>
+        </Card>
       </section>
     </div>
   ));

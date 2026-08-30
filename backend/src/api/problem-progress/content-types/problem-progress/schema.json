@@ -1,0 +1,29 @@
+{
+  "kind": "collectionType",
+  "collectionName": "problem_progresses",
+  "info": {
+    "singularName": "problem-progress",
+    "pluralName": "problem-progresses",
+    "displayName": "Problem Progress",
+    "description": "One DSA problem-set progress row per student and problem"
+  },
+  "options": { "draftAndPublish": false },
+  "attributes": {
+    "student": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "required": true
+    },
+    "problemSet": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::problem-set.problem-set",
+      "inversedBy": "progressRecords",
+      "required": true
+    },
+    "attemptedAt": { "type": "datetime", "required": true },
+    "completedAt": { "type": "datetime" },
+    "notes": { "type": "text" }
+  }
+}

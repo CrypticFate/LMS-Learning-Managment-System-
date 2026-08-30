@@ -3,6 +3,7 @@ import type { Core } from '@strapi/strapi';
 import { ROLE, type RoleName } from './constants/roles';
 import { seedDemoContent } from './seed/demo-content';
 import { migrateCourseContentRelations } from './seed/migrate-course-content';
+import { seedProblemSets } from './seed/problem-sets';
 type UsersPermissionsRole = {
   id: number;
   name: string;
@@ -79,6 +80,19 @@ const SHARED_AUTHENTICATED_ACTIONS = [
   'api::admin-role.admin-role.listUsers',
   'api::admin-role.admin-role.updateRole',
   'api::admin-role.admin-role.stats',
+  'api::problem-set.problem-set.find',
+  'api::problem-set.problem-set.findOne',
+  'api::problem-progress.problem-progress.me',
+  'api::problem-progress.problem-progress.attempt',
+  'api::problem-progress.problem-progress.complete',
+  'api::problem-progress.problem-progress.students',
+  'api::problem-set.problem-set.adminProgress',
+];
+
+const STAFF_PROBLEM_SET_ACTIONS = [
+  'api::problem-set.problem-set.create',
+  'api::problem-set.problem-set.update',
+  'api::problem-set.problem-set.delete',
 ];
 
 async function enablePermission(
@@ -159,6 +173,7 @@ export default {
     await migrateCourseContentRelations(strapi);
 
     await seedDemoContent(strapi);
+    await seedProblemSets(strapi);
 
     const publicRole = existing.find((role) => role.type === 'public');
     if (publicRole) {
@@ -179,6 +194,12 @@ export default {
       for (const action of SHARED_AUTHENTICATED_ACTIONS) {
         await enablePermission(strapi, role.id, action);
       }
+    }
+
+    for (const roleName of [ROLE.ADMIN, ROLE.CONTENT_MANAGER, ROLE.INSTRUCTOR]) {
+      const role = rolesByName.get(roleName);
+      if (!role) continue;
+      for (const action of STAFF_PROBLEM_SET_ACTIONS) await enablePermission(strapi, role.id, action);
     }
   },
 };
