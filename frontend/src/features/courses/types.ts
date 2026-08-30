@@ -27,6 +27,11 @@ export type Lesson = {
   modules?: Array<{
     documentId: string;
     title: string;
+    courses?: Array<{
+      documentId: string;
+      title: string;
+      owner?: CourseOwner | null;
+    }>;
   }>;
   createdAt: string;
   updatedAt: string;
@@ -44,6 +49,7 @@ export type Module = {
   courses?: Array<{
     documentId: string;
     title: string;
+    owner?: CourseOwner | null;
   }>;
   updatedAt?: string;
 };

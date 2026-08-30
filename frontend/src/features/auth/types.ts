@@ -5,6 +5,10 @@ export type CurrentUser = {
   documentId: string;
   username: string;
   email: string;
+  codeforcesHandle?: string | null;
+  vjudgeHandle?: string | null;
+  discordHandle?: string | null;
+  codechefHandle?: string | null;
   role: {
     id: number;
     name: RoleName;
@@ -21,3 +25,9 @@ export type AuthSuccess = {
 };
 
 export type AuthActionState = ActionResult<AuthSuccess>;
+
+export type ProfileSuccess = {
+  user: CurrentUser;
+};
+
+export type ProfileActionState = ActionResult<ProfileSuccess>;

@@ -30,6 +30,7 @@ const DEMO_USERS: Array<{
 
 const SHARED_AUTHENTICATED_ACTIONS = [
   'plugin::users-permissions.user.me',
+  'plugin::users-permissions.user.updateMe',
   'api::course.course.find',
   'api::course.course.findOne',
   'api::course.course.create',
@@ -169,6 +170,17 @@ export default {
         provider: 'local',
       });
     }
+
+
+    await strapi.db.query('plugin::users-permissions.user').update({
+      where: { email: 'student@lms.test' },
+      data: {
+        codeforcesHandle: 'muntasirtushar2024',
+        vjudgeHandle: null,
+        discordHandle: 'muntasirhossain.',
+        codechefHandle: null,
+      },
+    });
 
     await migrateCourseContentRelations(strapi);
 

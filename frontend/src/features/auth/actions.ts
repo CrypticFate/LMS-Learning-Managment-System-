@@ -1,11 +1,13 @@
 'use server';
 
 import { cookies } from 'next/headers';
+import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
 import type {
   AuthActionState,
   CurrentUser,
+  ProfileActionState,
 } from '@/features/auth/types';
 import {
   AUTH_COOKIE,
@@ -144,6 +146,45 @@ export async function registerAction(
       ok: false,
       error: 'Registration failed. The email or username may already be in use.',
     };
+  }
+}
+
+
+export async function updateProfileAction(
+  _previousState: ProfileActionState,
+  formData: FormData,
+): Promise<ProfileActionState> {
+  const username = textField(formData, 'username');
+  const email = textField(formData, 'email').toLowerCase();
+  const returnPath = textField(formData, 'returnPath') || '/';
+
+  if (!username || !email) {
+    return { ok: false, error: 'Username and email are required.' };
+  }
+  if (!/^\S+@\S+\.\S+$/.test(email)) {
+    return { ok: false, error: 'Enter a valid email address.' };
+  }
+
+  try {
+    const user = await strapiFetch<CurrentUser>('/api/users/me/profile', {
+      auth: true,
+      method: 'PUT',
+      body: JSON.stringify({
+      data: {
+        username,
+        email,
+        codeforcesHandle: textField(formData, 'codeforcesHandle'),
+        vjudgeHandle: textField(formData, 'vjudgeHandle'),
+        discordHandle: textField(formData, 'discordHandle'),
+        codechefHandle: textField(formData, 'codechefHandle'),
+      },
+    }),
+    });
+    revalidatePath(returnPath);
+    revalidatePath(DASHBOARD_ROUTE_BY_ROLE[user.role.name]);
+    return { ok: true, data: { user } };
+  } catch {
+    return { ok: false, error: 'Profile update failed. The email or username may already be in use.' };
   }
 }
 

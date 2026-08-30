@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { StrapiError } from '@/lib/strapi';
 import {
   attachQuizToModuleAction,
   detachQuizFromModuleAction,
@@ -19,14 +20,54 @@ import {
   getModuleQuizSummaries,
   getQuizAttempts,
 } from '../queries';
-import type { QuizSummary } from '../types';
+import type { ManagerQuizAttempt, Quiz, QuizSummary } from '../types';
 import { QuizEditor } from './quiz-editor';
 
 type QuizManagementProps = {
   moduleDocumentId: string;
   returnPath: string;
   availableQuizzes?: QuizSummary[];
+  canManageModule?: boolean;
 };
+
+
+type ManageableQuiz = {
+  quiz: Quiz;
+  attempts: ManagerQuizAttempt[];
+};
+
+function isExpectedAccessError(error: unknown): boolean {
+  return error instanceof StrapiError && (error.status === 403 || error.status === 404);
+}
+
+async function getManageableQuiz(summary: QuizSummary): Promise<ManageableQuiz | null> {
+  try {
+    const quiz = await getManageQuiz(summary.documentId);
+    let attempts: ManagerQuizAttempt[] = [];
+    try {
+      attempts = await getQuizAttempts(summary.documentId);
+    } catch (error) {
+      if (!isExpectedAccessError(error)) throw error;
+    }
+    return { quiz, attempts };
+  } catch (error) {
+    if (isExpectedAccessError(error)) return null;
+    throw error;
+  }
+}
+
+async function filterManageableQuizSummaries(summaries: QuizSummary[]): Promise<QuizSummary[]> {
+  const checked = await Promise.all(summaries.map(async (summary) => {
+    try {
+      await getManageQuiz(summary.documentId);
+      return summary;
+    } catch (error) {
+      if (isExpectedAccessError(error)) return null;
+      throw error;
+    }
+  }));
+  return checked.filter((summary): summary is QuizSummary => Boolean(summary));
+}
 
 function submittedAt(value: string): string {
   return new Intl.DateTimeFormat('en', {
@@ -39,15 +80,14 @@ export async function QuizManagement({
   moduleDocumentId,
   returnPath,
   availableQuizzes = [],
+  canManageModule = true,
 }: QuizManagementProps) {
   const summaries = await getModuleQuizSummaries(moduleDocumentId);
-  const quizzes = await Promise.all(summaries.map(async (summary) => {
-    const [quiz, attempts] = await Promise.all([
-      getManageQuiz(summary.documentId),
-      getQuizAttempts(summary.documentId),
-    ]);
-    return { quiz, attempts };
-  }));
+  const [quizResults, manageableAvailableQuizzes] = await Promise.all([
+    Promise.all(summaries.map(getManageableQuiz)),
+    filterManageableQuizSummaries(availableQuizzes),
+  ]);
+  const quizzes = quizResults.filter((item): item is ManageableQuiz => Boolean(item));
 
   return (
     <details className="quiz-management admin-disclosure">
@@ -63,6 +103,7 @@ export async function QuizManagement({
                 <CardTitle className="mt-3">{quiz.title}</CardTitle>
                 <CardDescription>{attempts.length} submitted attempts</CardDescription>
               </div>
+              {canManageModule && (
               <div className="admin-row-actions">
                 <form action={detachQuizFromModuleAction.bind(
                   null,
@@ -76,21 +117,24 @@ export async function QuizManagement({
                   <Button className="danger-button" variant="outline" size="sm" type="submit">Delete everywhere</Button>
                 </form>
               </div>
+              )}
             </CardHeader>
             <CardContent className="admin-stack">
-              <details className="admin-disclosure subtle">
-                <summary>Edit questions</summary>
-                <QuizEditor
-                  action={updateQuizAction.bind(
-                    null,
-                    quiz.documentId,
-                    returnPath,
-                  )}
-                  initialQuestions={quiz.questions}
-                  initialTitle={quiz.title}
-                  submitLabel="Save quiz"
-                />
-              </details>
+              {canManageModule && (
+                <details className="admin-disclosure subtle">
+                  <summary>Edit questions</summary>
+                  <QuizEditor
+                    action={updateQuizAction.bind(
+                      null,
+                      quiz.documentId,
+                      returnPath,
+                    )}
+                    initialQuestions={quiz.questions}
+                    initialTitle={quiz.title}
+                    submitLabel="Save quiz"
+                  />
+                </details>
+              )}
 
               <details className="admin-disclosure subtle">
                 <summary>Results ({attempts.length})</summary>
@@ -123,7 +167,7 @@ export async function QuizManagement({
           </Card>
         ))}
 
-        {availableQuizzes.length > 0 && (
+        {canManageModule && manageableAvailableQuizzes.length > 0 && (
           <details className="admin-disclosure subtle">
             <summary>Attach existing quiz</summary>
             <form
@@ -132,7 +176,7 @@ export async function QuizManagement({
             >
               <Label>Quiz
                 <Select name="quizDocumentId" required>
-                  {availableQuizzes.map((quiz) => (
+                  {manageableAvailableQuizzes.map((quiz) => (
                     <option key={quiz.documentId} value={quiz.documentId}>{quiz.title}</option>
                   ))}
                 </Select>
@@ -142,6 +186,7 @@ export async function QuizManagement({
           </details>
         )}
 
+        {canManageModule && (
         <details className="quiz-create-panel admin-disclosure subtle">
           <summary>Add quiz</summary>
           <QuizEditor
@@ -149,6 +194,7 @@ export async function QuizManagement({
             submitLabel="Create quiz"
           />
         </details>
+        )}
       </div>
     </details>
   );

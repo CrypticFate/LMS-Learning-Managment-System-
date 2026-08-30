@@ -34,6 +34,13 @@ const navItems = {
   ],
 };
 
+const profileRoutes = {
+  [ROLE.ADMIN]: '/admin',
+  [ROLE.CONTENT_MANAGER]: '/content-manager/profile',
+  [ROLE.INSTRUCTOR]: '/instructor/profile',
+  [ROLE.STUDENT]: '/student/profile',
+};
+
 function isActive(pathname: string, href: string) {
   if (href === '/student' || href === '/instructor' || href === '/content-manager') {
     return pathname === href;
@@ -66,13 +73,13 @@ export function DashboardSidebar({ user }: { user: CurrentUser }) {
       </nav>
 
       <div className="dashboard-sidebar-footer">
-        <div className="dashboard-sidebar-user">
+        <Link className="dashboard-sidebar-user dashboard-sidebar-user-link" href={profileRoutes[user.role.name]}>
           <span aria-hidden="true">{user.username.slice(0, 1).toUpperCase()}</span>
           <div>
             <strong>{user.username}</strong>
             <small>{user.role.name}</small>
           </div>
-        </div>
+        </Link>
         <form action={logoutAction}>
           <button className={buttonVariants({ variant: 'outline', className: 'w-full' })} type="submit">
             Sign out

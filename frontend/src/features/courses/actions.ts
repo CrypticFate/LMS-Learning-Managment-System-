@@ -300,13 +300,16 @@ export async function createCommentAction(
 
 export async function deleteCommentAction(
   commentDocumentId: string,
-  courseDocumentId: string,
+  returnPathOrCourseDocumentId: string,
 ): Promise<void> {
   await strapiFetch(`/api/comments/${encodeURIComponent(commentDocumentId)}`, {
     auth: true,
     method: 'DELETE',
   });
-  revalidatePath(`/student/courses/${courseDocumentId}`);
+  const targetPath = returnPathOrCourseDocumentId.startsWith('/')
+    ? returnPathOrCourseDocumentId
+    : `/student/courses/${returnPathOrCourseDocumentId}`;
+  revalidatePath(targetPath);
 }
 
 /* ────── Enrollment ────── */

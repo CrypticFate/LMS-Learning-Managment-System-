@@ -1,5 +1,8 @@
 import { factories } from '@strapi/strapi';
 
+import { ROLE } from '../../../constants/roles';
+import { canManageAnyCourse, relatedCourses } from '../../../policies/course-access';
+
 export default factories.createCoreController('api::comment.comment', ({ strapi }) => ({
   async create(ctx) {
     const lessonDocumentId = ctx.request.body?.data?.lesson;
@@ -32,14 +35,28 @@ export default factories.createCoreController('api::comment.comment', ({ strapi 
     const documentId = ctx.params.documentId ?? ctx.params.id;
     const comment = await strapi.documents('api::comment.comment').findOne({
       documentId,
-      populate: { author: { fields: ['id'] } },
+      populate: {
+        author: { fields: ['id'] },
+        lesson: {
+          populate: {
+            modules: {
+              populate: {
+                courses: { populate: { owner: true } },
+              },
+            },
+          },
+        },
+      },
     });
     if (!comment) return ctx.notFound('Comment not found');
 
-    // Only the comment author or Admin can delete
     const user = ctx.state.user;
     const role = user.role?.name;
-    if (role !== 'Admin' && comment.author?.id !== user.id) {
+    const canModerate = role === ROLE.ADMIN || role === ROLE.CONTENT_MANAGER || canManageAnyCourse(
+      user,
+      relatedCourses(comment.lesson),
+    );
+    if (!canModerate && comment.author?.id !== user.id) {
       return ctx.forbidden('You can only delete your own comments');
     }
 

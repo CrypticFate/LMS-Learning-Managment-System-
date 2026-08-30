@@ -235,7 +235,10 @@ export default factories.createCoreController('api::module.module', ({ strapi })
       },
       sort: ['order:asc', 'createdAt:asc'],
       populate: {
-        courses: { fields: ['documentId', 'title'] },
+        courses: {
+          fields: ['documentId', 'title'],
+          populate: { owner: { fields: ['id', 'documentId', 'username'] } },
+        },
         lessons: { fields: ['documentId', 'title', 'order'] },
         quizzes: { fields: ['documentId', 'title'] },
       },

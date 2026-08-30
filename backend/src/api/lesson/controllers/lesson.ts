@@ -70,7 +70,17 @@ export default factories.createCoreController('api::lesson.lesson', ({ strapi })
         modules: { documentId: { $eq: moduleDocumentId } },
       },
       sort: ['order:asc', 'createdAt:asc'],
-      populate: { modules: { fields: ['documentId', 'title'] } },
+      populate: {
+        modules: {
+          fields: ['documentId', 'title'],
+          populate: {
+            courses: {
+              fields: ['documentId', 'title'],
+              populate: { owner: { fields: ['id', 'documentId', 'username'] } },
+            },
+          },
+        },
+      },
     });
     return { data: lessons };
   },

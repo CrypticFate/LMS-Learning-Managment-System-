@@ -1230,6 +1230,275 @@ a.admin-stat-card:hover {
 }
 
 
+
+.student-profile-page {
+  width: min(100%, 94rem);
+  margin-inline: auto;
+  padding-top: 0.75rem;
+}
+
+.student-profile-grid {
+  display: grid;
+  grid-template-columns: minmax(18rem, 30rem) minmax(0, 1fr);
+  gap: 2rem;
+  align-items: start;
+}
+
+.student-profile-card {
+  border-color: #e7dac0;
+}
+
+.student-profile-card-content {
+  display: grid;
+  gap: 1.25rem;
+  padding: 1.55rem;
+}
+
+.student-profile-avatar {
+  display: grid;
+  width: 6rem;
+  height: 6rem;
+  margin-inline: auto;
+  place-items: center;
+  border: 3px solid #f5eedf;
+  border-radius: 50%;
+  background: #e9dfca;
+  color: #111827;
+  font-size: 1.7rem;
+  font-weight: 500;
+}
+
+.student-profile-identity {
+  text-align: center;
+}
+
+.student-profile-identity h2 {
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.student-profile-identity p {
+  margin: 0.35rem 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.student-profile-completion {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.student-profile-completion div,
+.student-profile-details div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.student-profile-completion span,
+.student-profile-details span {
+  color: #4b5563;
+  font-size: 0.9rem;
+}
+
+.student-profile-completion strong,
+.student-profile-details strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: #111827;
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-align: right;
+}
+
+.student-profile-completion progress {
+  width: 100%;
+  height: 0.55rem;
+  overflow: hidden;
+  border: 0;
+  border-radius: 999px;
+  background: #d9d9d9;
+}
+
+.student-profile-completion progress::-webkit-progress-bar {
+  background: #d9d9d9;
+}
+
+.student-profile-completion progress::-webkit-progress-value {
+  background: #e96500;
+}
+
+.student-profile-completion progress::-moz-progress-bar {
+  background: #e96500;
+}
+
+.student-profile-details {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.student-profile-edit {
+  display: grid;
+  gap: 1rem;
+}
+
+.student-profile-edit summary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.45rem;
+  border-radius: 0.4rem;
+  background: #161616;
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 800;
+  list-style: none;
+  transition: background-color 180ms ease, transform 180ms ease;
+}
+
+.student-profile-edit summary::-webkit-details-marker {
+  display: none;
+}
+
+.student-profile-edit summary:hover {
+  background: #2a2a2a;
+  transform: translateY(-1px);
+}
+
+.student-profile-form {
+  display: grid;
+  gap: 0.85rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.student-profile-main {
+  display: grid;
+  gap: 2rem;
+}
+
+.student-profile-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.student-profile-stat-grid > div,
+.student-contest-card {
+  border-color: #e7dac0;
+}
+
+.student-profile-stat-grid h3 {
+  font-size: 1.55rem;
+}
+
+.student-contest-empty {
+  height: 6rem;
+  text-align: center;
+  color: var(--muted);
+}
+
+
+.profile-page {
+  max-width: 48rem;
+}
+
+.profile-heading {
+  align-items: flex-start;
+}
+
+.profile-card {
+  overflow: hidden;
+}
+
+.profile-card-header {
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 1rem;
+}
+
+.profile-avatar {
+  display: grid;
+  width: 4.25rem;
+  height: 4.25rem;
+  place-items: center;
+  border-radius: 0.75rem;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  font-size: 1.45rem;
+  font-weight: 850;
+}
+
+.profile-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.profile-readonly-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.profile-readonly-grid div {
+  display: grid;
+  gap: 0.25rem;
+  min-width: 0;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 0.6rem;
+  background: var(--muted-surface);
+}
+
+.profile-readonly-grid span {
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.profile-readonly-grid strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profile-actions {
+  margin-top: 0.25rem;
+}
+
+.dashboard-sidebar-user-link {
+  padding: 0.45rem;
+  border-radius: 0.65rem;
+  text-decoration: none;
+  transition: background-color 180ms ease, transform 180ms ease;
+}
+
+.dashboard-sidebar-user-link:hover {
+  background: var(--muted-surface);
+  transform: translateX(2px);
+}
+
+.animate-soft-in {
+  animation: soft-in 260ms ease both;
+}
+
+@keyframes soft-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+
 .admin-layout-shell,
 .dashboard-layout-shell {
   display: grid;
@@ -2268,6 +2537,27 @@ a.admin-stat-card:hover {
   .dashboard-sidebar-footer {
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
+  }
+
+
+
+  .student-profile-grid,
+  .student-profile-stat-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .student-profile-page {
+    padding-top: 0;
+  }
+
+  .profile-card-header,
+  .profile-readonly-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-avatar {
+    width: 3.5rem;
+    height: 3.5rem;
   }
 
   .admin-layout-main,
