@@ -55,7 +55,15 @@ const SHARED_AUTHENTICATED_ACTIONS = [
   'api::quiz.quiz.submit',
   'api::quiz.quiz.attempts',
   'api::quiz-attempt.quiz-attempt.me',
+  'api::blog-post.blog-post.create',
+  'api::blog-post.blog-post.update',
+  'api::blog-post.blog-post.delete',
+  'api::blog-post.blog-post.publish',
+  'api::blog-post.blog-post.unpublish',
+  'api::admin-role.admin-role.listUsers',
   'api::admin-role.admin-role.updateRole',
+  'api::admin-role.admin-role.stats',
+  'api::admin-role.admin-role.listBlogPosts',
 ];
 
 async function enablePermission(

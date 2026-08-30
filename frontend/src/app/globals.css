@@ -824,6 +824,120 @@ progress::-moz-progress-bar {
   padding: 1rem;
 }
 
+.admin-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+  gap: 1rem;
+}
+
+.admin-stat-card {
+  display: grid;
+  gap: 0.7rem;
+  min-height: 9rem;
+  align-content: space-between;
+  padding: 1.35rem;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: var(--surface);
+  color: var(--foreground);
+  text-decoration: none;
+}
+
+a.admin-stat-card:hover {
+  border-color: #9fc5b4;
+  box-shadow: 0 0.75rem 2rem rgb(23 33 27 / 7%);
+}
+
+.admin-stat-card span {
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 750;
+}
+
+.admin-stat-card strong {
+  color: var(--accent-dark);
+  font-size: clamp(2.4rem, 6vw, 4rem);
+  line-height: 1;
+}
+
+.role-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 0.75rem;
+}
+
+.role-stat-grid div {
+  display: grid;
+  gap: 0.25rem;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  background: var(--background);
+}
+
+.role-stat-grid strong {
+  color: var(--accent-dark);
+  font-size: 1.8rem;
+}
+
+.role-stat-grid span {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 750;
+}
+
+.admin-user-table {
+  padding: 1rem;
+}
+
+.role-change-form {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 13rem;
+}
+
+.role-change-form select {
+  min-height: 2.5rem;
+  padding: 0.45rem 2rem 0.45rem 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: 0.55rem;
+  background: var(--surface);
+  color: var(--foreground);
+  font: inherit;
+}
+
+.role-change-form span {
+  min-height: 1.1rem;
+  font-size: 0.76rem;
+}
+
+.form-success {
+  color: var(--accent-dark);
+}
+
+.status-badge {
+  display: inline-flex;
+  width: fit-content;
+  padding: 0.3rem 0.55rem;
+  border-radius: 999px;
+  background: #eee9dc;
+  color: #685d3d;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.status-badge.published {
+  background: #e6f1ec;
+  color: var(--accent-dark);
+}
+
+.admin-blog-title {
+  margin-top: 0.7rem;
+}
+
+.admin-content-actions {
+  margin-top: 0;
+}
+
 @media (max-width: 35rem) {
   .site-header {
     padding-inline: 1rem;
@@ -831,6 +945,7 @@ progress::-moz-progress-bar {
 
   .site-header nav {
     gap: 0.8rem;
+    overflow-x: auto;
   }
 
   .dashboard-header nav span {

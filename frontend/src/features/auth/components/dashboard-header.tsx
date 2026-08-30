@@ -7,7 +7,7 @@ import { DASHBOARD_ROUTE_BY_ROLE, ROLE } from '@/lib/constants';
 export function DashboardHeader({ user }: { user: CurrentUser }) {
   const dashboardRoute = DASHBOARD_ROUTE_BY_ROLE[user.role.name];
   const dashboardLabel = {
-    [ROLE.ADMIN]: 'Course management',
+    [ROLE.ADMIN]: 'Overview',
     [ROLE.CONTENT_MANAGER]: 'Content library',
     [ROLE.INSTRUCTOR]: 'My Courses',
     [ROLE.STUDENT]: 'Overview',
@@ -19,7 +19,16 @@ export function DashboardHeader({ user }: { user: CurrentUser }) {
         LMS
       </Link>
       <nav aria-label="Dashboard navigation">
-        <Link href={dashboardRoute}>{dashboardLabel}</Link>
+        {user.role.name === ROLE.ADMIN ? (
+          <>
+            <Link href="/admin">Overview</Link>
+            <Link href="/admin/users">Users</Link>
+            <Link href="/admin/courses">Courses</Link>
+            <Link href="/admin/blog">Blog</Link>
+          </>
+        ) : (
+          <Link href={dashboardRoute}>{dashboardLabel}</Link>
+        )}
         {user.role.name === ROLE.STUDENT && (
           <>
             <Link href="/student/my-courses">My Courses</Link>

@@ -1,37 +1,52 @@
-import type { Metadata } from 'next';
+import Link from 'next/link';
 
-import { AuthForm } from '@/features/auth/components/auth-form';
-import { DashboardHeader } from '@/features/auth/components/dashboard-header';
-import { AccessDenied } from '@/features/auth/components/role-guard';
-import { getCurrentUser } from '@/features/auth/session';
-import { CourseManagement } from '@/features/courses/components/course-management';
+import { getAdminStats } from '@/features/admin/queries';
 import { ROLE } from '@/lib/constants';
 
-export const metadata: Metadata = {
-  title: 'Admin portal | LMS',
-};
-
-export default async function AdminPage() {
-  const user = await getCurrentUser();
-
-  if (!user) {
-    return (
-      <main className="auth-shell">
-        <AuthForm mode="admin-login" />
-      </main>
-    );
-  }
+export default async function AdminOverviewPage() {
+  const stats = await getAdminStats();
 
   return (
     <>
-      <DashboardHeader user={user} />
-      <main className="page-shell dashboard-shell">
-        {user.role.name === ROLE.ADMIN ? (
-          <CourseManagement eyebrow="Admin dashboard" title="All courses" returnPath="/admin" />
-        ) : (
-          <AccessDenied user={user} />
-        )}
-      </main>
+      <p className="eyebrow">Admin dashboard</p>
+      <h1>Platform overview</h1>
+      <p className="lead">
+        Monitor platform activity and manage every user and content area.
+      </p>
+
+      <section className="admin-stat-grid section-gap" aria-label="Platform statistics">
+        <Link className="admin-stat-card" href="/admin/users">
+          <span>Total users</span>
+          <strong>{stats.totalUsers}</strong>
+        </Link>
+        <Link className="admin-stat-card" href="/admin/courses">
+          <span>Total courses</span>
+          <strong>{stats.totalCourses}</strong>
+        </Link>
+        <div className="admin-stat-card">
+          <span>Total enrollments</span>
+          <strong>{stats.totalEnrollments}</strong>
+        </div>
+        <Link className="admin-stat-card" href="/admin/blog">
+          <span>Blog posts</span>
+          <strong>{stats.totalBlogPosts}</strong>
+        </Link>
+      </section>
+
+      <section className="panel stack section-gap">
+        <div className="section-heading">
+          <h2>Users by role</h2>
+          <Link href="/admin/users">Manage users</Link>
+        </div>
+        <div className="role-stat-grid">
+          {Object.values(ROLE).map((role) => (
+            <div key={role}>
+              <strong>{stats.usersByRole[role] ?? 0}</strong>
+              <span>{role}</span>
+            </div>
+          ))}
+        </div>
+      </section>
     </>
   );
 }
